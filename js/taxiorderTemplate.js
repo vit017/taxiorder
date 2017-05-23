@@ -19,10 +19,10 @@ Form.addEvent('keyup', '#FIELD_FROM_STREET, #FIELD_TO_STREET', function (Event) 
     var $targetStreet = Form.getEventTarget(Event);
 
     OrderAdapter.findGeoObjects({
-            text: $targetStreet.val()
+            text: Form.getFieldValue($targetStreet)
         },
         function (foundedObjects) {
-            var autocompleteSelector = $targetStreet.attr('data-autocomplete');
+            var autocompleteSelector = Form.getFieldAttr($targetStreet, 'data-autocomplete');
 
             var OrderAutocomplete = new Autocomplete({
                 selector: autocompleteSelector
@@ -34,11 +34,10 @@ Form.addEvent('keyup', '#FIELD_FROM_STREET, #FIELD_TO_STREET', function (Event) 
             Form.addEvent('click', autocompleteSelector, function (Event) {
                 var $autocompleteItem = Form.getEventTarget(Event);
 
-                Form.setFieldValue($targetStreet, $autocompleteItem.text());
+                Form.setFieldValue($targetStreet, Form.getFieldContent($autocompleteItem));
                 OrderAutocomplete.hide();
 
-                Order.setParam($targetStreet.attr('data-order-param'), JSON.parse($autocompleteItem.attr('data-res')));
-                console.log(Order);
+                Order.setParam(Form.getFieldAttr($targetStreet, 'data-order-param'), JSON.parse(Form.getFieldAttr($autocompleteItem, 'data-res')));
             });
 
         }, function (error) {

@@ -22,10 +22,26 @@ OrderForm.prototype.removeEvent = function (eventType, selector, handler) {
     $(selector).off(eventType, handler);
 };
 
-OrderForm.prototype.getEventTarget = function(Event) {
+OrderForm.prototype.getEventTarget = function (Event) {
     return $(Event.target);
 };
 
-OrderForm.prototype.setFieldValue = function(selector, value) {
+OrderForm.prototype.setFieldValue = function (selector, value) {
     $(selector).val(value);
+};
+
+OrderForm.prototype.getFieldValue = function (selector) {
+    return $(selector).val();
+};
+
+OrderForm.prototype.getFieldContent = function (selector) {
+    return $(selector).text();
+};
+
+OrderForm.prototype.setFieldAttr = function (selector, attr, value) {
+    return $(selector).attr(attr, value);
+};
+
+OrderForm.prototype.getFieldAttr = function (selector, attr) {
+    return $(selector).attr(attr);
 };
