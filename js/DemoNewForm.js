@@ -20,7 +20,7 @@ function DemoNewForm() {
 DemoNewForm.prototype = Object.create(AbstractForm.prototype);
 DemoNewForm.constructor = DemoNewForm;
 
-DemoNewForm.prototype.waitAddressEvents = function () {
+DemoNewForm.prototype.waitFieldsEvents = function () {
     var
         that = this,
         fields = this.getFields(),
@@ -29,15 +29,17 @@ DemoNewForm.prototype.waitAddressEvents = function () {
             fields.houseFrom,
             fields.porchFrom,
             fields.streetTo,
-            fields.houseTo
+            fields.houseTo,
+            fields.phone,
+            fields.comment
         ];
 
     addressFields.forEach(function (field) {
-        that.startListen('blur', field, that.addressChanged.bind(that, field));
+        that.startListen('blur', field, that.fieldChanged.bind(that, field));
     });
 };
 
-DemoNewForm.prototype.addressChanged = function (field, Event) {
+DemoNewForm.prototype.fieldChanged = function (field, Event) {
     var
         that = this,
         $target = this.getEventTarget(Event),
@@ -52,11 +54,18 @@ DemoNewForm.prototype.addressChanged = function (field, Event) {
 };
 
 DemoNewForm.prototype.findTariffs = function () {
-    this.messenger.findTariffs(this.showTariffs.bind(this));
+    var
+        $target = $(this.getField('tariffs'));
+
+    this.messenger.findTariffs(function(tariffs) {
+        this.setTariffs($target, tariffs);
+        this.showTariffs($target);
+        this.waitTariffChange();
+    }.bind(this));
 };
 
-DemoNewForm.prototype.showTariffs = function (tariffs) {
-    var $tariffsField = $(this.getField('tariffs')),
+DemoNewForm.prototype.setTariffs = function($target, tariffs) {
+    var
         $documentFragment = $(document.createDocumentFragment()),
         option = {};
 
@@ -67,8 +76,11 @@ DemoNewForm.prototype.showTariffs = function (tariffs) {
         $documentFragment.append(option);
     });
 
-    $tariffsField.append($documentFragment);
-    $tariffsField.show();
+    $target.append($documentFragment);
+};
+
+DemoNewForm.prototype.showTariffs = function ($target) {
+    $target.show();
 };
 
 DemoNewForm.prototype.waitTariffChange = function () {

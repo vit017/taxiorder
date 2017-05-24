@@ -14,15 +14,90 @@ function GNewForm() {
         porchTo: '#input-to-porch',
         comment: '#input-from-comment',
         phone: '#input-user-phone',
-        clientName: '#input-user-name'
+        clientName: '#input-user-name',
+        tariffs: '#input-tariffs'
     }
 }
 
 GNewForm.prototype = Object.create(AbstractForm.prototype);
 GNewForm.constructor = GNewForm;
 
-GNewForm.prototype.findTariffs = function (success, error) {
-    this.messenger.findTariffs.call(this.messenger, success, error);
+GNewForm.prototype.waitFieldsEvents = function () {
+    var
+        that = this,
+        fields = this.getFields(),
+        addressFields = [
+            fields.streetFrom,
+            fields.houseFrom,
+            fields.housingFrom,
+            fields.porchFrom,
+            fields.streetTo,
+            fields.houseTo,
+            fields.housingTo,
+            fields.porchTo,
+            fields.phone,
+            fields.comment,
+            fields.clientName
+        ];
+
+    addressFields.forEach(function (field) {
+        that.startListen('blur', field, that.fieldChanged.bind(that, field));
+    });
+};
+
+GNewForm.prototype.fieldChanged = function (field, Event) {
+    var
+        that = this,
+        $target = this.getEventTarget(Event),
+        fields = this.getFields();
+
+    Object.keys(fields).forEach(function (key) {
+        if (field === fields[key]) {
+            that.setParam(key, that.getFieldValue($target));
+            console.log(that)
+        }
+    });
+};
+
+GNewForm.prototype.findTariffs = function () {
+    var
+        $target = $(this.getField('tariffs')).find('select');
+
+    this.messenger.findTariffs(function(tariffs) {
+        this.setTariffs($target, tariffs);
+        this.showTariffs($target);
+        this.waitTariffChange();
+    }.bind(this));
+};
+
+GNewForm.prototype.setTariffs = function($target, tariffs) {
+    var
+        $documentFragment = $(document.createDocumentFragment()),
+        option = {};
+
+    tariffs.forEach(function (tariff) {
+        option = document.createElement('option');
+        option.value = tariff.id;
+        option.text = tariff.label;
+        $documentFragment.append(option);
+    });
+
+    $target.append($documentFragment);
+};
+
+GNewForm.prototype.showTariffs = function ($target) {
+    $(this.getField('tariffs')).show();
+    $target.show();
+};
+
+GNewForm.prototype.waitTariffChange = function () {
+    this.startListen('change', this.getField('tariffs'), this.calculateCost.bind(this));
+};
+
+GNewForm.prototype.calculateCost = function (Event) {
+    console.log(this.params)
+    console.log(Event)
+    console.log(Event)
 };
 
 GNewForm.prototype.waitGeoObjects = function () {
