@@ -163,6 +163,7 @@ DemoNewForm.prototype.geoObjectChoosen = function (Event) {
 
     this.setFieldValue($street, $object.text());
     this.setParam(field, objectAddress.address.street);
+    
     this.hideGeoObjects($autocomplete);
 };
 
