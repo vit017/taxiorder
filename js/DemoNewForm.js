@@ -13,7 +13,8 @@ function DemoNewForm() {
         houseTo: '#FIELD_TO_HOUSE',
         comment: '#FIELD_FROM_COMMENT',
         phone: '#FIELD_PHONE',
-        tariffs: '#FIELD_TARIFFS'
+        tariffs: '#FIELD_TARIFFS',
+        cost: '#RESULT_COST_SUM'
     }
 }
 
@@ -25,46 +26,43 @@ DemoNewForm.prototype.waitFieldsEvents = function () {
         that = this,
         fields = this.getFields(),
         addressFields = [
-            fields.streetFrom,
-            fields.houseFrom,
-            fields.porchFrom,
-            fields.streetTo,
-            fields.houseTo,
-            fields.phone,
-            fields.comment
+            'streetFrom',
+            'houseFrom',
+            'porchFrom',
+            'streetTo',
+            'houseTo',
+            'phone',
+            'comment'
         ];
 
     addressFields.forEach(function (field) {
-        that.startListen('blur', field, that.fieldChanged.bind(that, field));
+        if (fields.hasOwnProperty(field)) {
+            that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
+        }
     });
 };
 
 DemoNewForm.prototype.fieldChanged = function (field, Event) {
     var
         that = this,
-        $target = this.getEventTarget(Event),
-        fields = this.getFields();
+        $target = this.getEventTarget(Event);
 
-    Object.keys(fields).forEach(function (key) {
-        if (field === fields[key]) {
-            that.setParam(key, that.getFieldValue($target));
-            console.log(that)
-        }
-    });
+    this.setParam(field, that.getFieldValue($target));
+    this.calculateCost(Event);
 };
 
 DemoNewForm.prototype.findTariffs = function () {
     var
         $target = $(this.getField('tariffs'));
 
-    this.messenger.findTariffs(function(tariffs) {
+    this.messenger.findTariffs(function (tariffs) {
         this.setTariffs($target, tariffs);
         this.showTariffs($target);
         this.waitTariffChange();
     }.bind(this));
 };
 
-DemoNewForm.prototype.setTariffs = function($target, tariffs) {
+DemoNewForm.prototype.setTariffs = function ($target, tariffs) {
     var
         $documentFragment = $(document.createDocumentFragment()),
         option = {};
@@ -84,13 +82,32 @@ DemoNewForm.prototype.showTariffs = function ($target) {
 };
 
 DemoNewForm.prototype.waitTariffChange = function () {
-    this.startListen('change', this.getField('tariffs'), this.calculateCost.bind(this));
+    this.startListen('change', this.getField('tariffs'), function (Event) {
+        this.calculateCost();
+    }.bind(this));
 };
 
 DemoNewForm.prototype.calculateCost = function (Event) {
-    console.log(this.params)
-    console.log(Event)
-    console.log(Event)
+    var
+        that = this,
+        $target = $(this.getField('cost'));
+
+    setTimeout(function() {
+        that.messenger.calculateCost(that.params, function (cost) {
+            that.setCost($target, cost);
+            that.showCost($target);
+        }.bind(that), function(e) {
+            console.error(e)
+        });
+    }, 200);
+};
+
+DemoNewForm.prototype.setCost = function ($target, cost) {
+    console.log(cost);
+};
+
+DemoNewForm.prototype.showCost = function ($target) {
+
 };
 
 DemoNewForm.prototype.waitGeoObjects = function () {

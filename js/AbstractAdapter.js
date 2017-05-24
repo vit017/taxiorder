@@ -109,7 +109,7 @@ AbstractAdapter.prototype.sendResponse = function (Response, done) {
     else {
         Response.getErrorFunction()({
             status: Response.getStatus(),
-            message: Response.getStatusText()
+            statusText: Response.getStatusText()
         });
     }
 };

@@ -5,5 +5,50 @@ function GootaxAdapter() {
 GootaxAdapter.prototype = Object.create(AbstractAdapter.prototype);
 GootaxAdapter.constructor = GootaxAdapter;
 
+GootaxAdapter.prototype.calculateCost = function (clientParams, success, error) {
+    var that = this,
+        params = {
+            fromCity: '',
+            fromStreet: clientParams.streetFrom,
+            fromHouse: clientParams.houseFrom,
+            fromHousing: clientParams.housingFrom,
+            fromBuilding: '',
+            fromPorch: clientParams.porchFrom,
+            fromLat: '',
+            fromLon: '',
+            toCity: '',
+            toStreet: clientParams.streetTo,
+            toHouse: clientParams.houseTo,
+            toHousing: clientParams.housingTo,
+            toBuilding: '',
+            toPorch: clientParams.porchTo,
+            toLat: '',
+            toLon: '',
+            clientName: clientParams.clientName,
+            phone: clientParams.phone,
+            priorTime: clientParams.orderTime,
+            customCarId: '',
+            customCar: '',
+            carType: clientParams.carType,
+            carGroupId: '',
+            tariffGroupId: clientParams.tariffID,
+            comment: clientParams.comment
+        };
 
+    this.process(new Request({
+        url: that.url + 'callCost',
+        params: params,
+        success: success,
+        error: error
+    }), function (Response) {
+
+        var data = Response.getData();
+        Response.data = {
+            'length': data.result.summaryDistance,
+            'cost': data.result.summaryCost
+        };
+
+        return Response;
+    });
+};
 

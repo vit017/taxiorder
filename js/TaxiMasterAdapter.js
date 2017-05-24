@@ -8,17 +8,17 @@ TaxiMasterAdapter.constructor = TaxiMasterAdapter;
 TaxiMasterAdapter.prototype.calculateCost = function (clientParams, success, error) {
     var that = this,
         params = {
-            fromCity: clientParams.from.city,
-            fromStreet: clientParams.from.street,
-            fromHouse: clientParams.from.house,
+            fromCity: '',
+            fromStreet: clientParams.streetFrom,
+            fromHouse: clientParams.houseFrom,
             fromHousing: '',
             fromBuilding: '',
-            fromPorch: clientParams.from.porch,
+            fromPorch: clientParams.porchFrom,
             fromLat: '',
             fromLon: '',
-            toCity: clientParams.to.city,
-            toStreet: clientParams.to.street,
-            toHouse: clientParams.to.house,
+            toCity: '',
+            toStreet: clientParams.streetTo,
+            toHouse: clientParams.houseTo,
             toHousing: '',
             toBuilding: '',
             toPorch: '',
@@ -32,7 +32,7 @@ TaxiMasterAdapter.prototype.calculateCost = function (clientParams, success, err
             carType: clientParams.carType,
             carGroupId: '',
             tariffGroupId: clientParams.tariffID,
-            comment: clientParams.from.comment
+            comment: clientParams.comment
         };
 
     this.process(new Request({

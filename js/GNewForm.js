@@ -27,36 +27,33 @@ GNewForm.prototype.waitFieldsEvents = function () {
         that = this,
         fields = this.getFields(),
         addressFields = [
-            fields.streetFrom,
-            fields.houseFrom,
-            fields.housingFrom,
-            fields.porchFrom,
-            fields.streetTo,
-            fields.houseTo,
-            fields.housingTo,
-            fields.porchTo,
-            fields.phone,
-            fields.comment,
-            fields.clientName
+            'streetFrom',
+            'houseFrom',
+            'housingFrom',
+            'porchFrom',
+            'streetTo',
+            'houseTo',
+            'housingTo',
+            'porchTo',
+            'phone',
+            'comment',
+            'clientName'
         ];
 
     addressFields.forEach(function (field) {
-        that.startListen('blur', field, that.fieldChanged.bind(that, field));
+        if (fields.hasOwnProperty(field)) {
+            that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
+        }
     });
 };
 
 GNewForm.prototype.fieldChanged = function (field, Event) {
     var
         that = this,
-        $target = this.getEventTarget(Event),
-        fields = this.getFields();
+        $target = this.getEventTarget(Event);
 
-    Object.keys(fields).forEach(function (key) {
-        if (field === fields[key]) {
-            that.setParam(key, that.getFieldValue($target));
-            console.log(that)
-        }
-    });
+    this.setParam(field, that.getFieldValue($target));
+    this.calculateCost(Event);
 };
 
 GNewForm.prototype.findTariffs = function () {
@@ -91,13 +88,32 @@ GNewForm.prototype.showTariffs = function ($target) {
 };
 
 GNewForm.prototype.waitTariffChange = function () {
-    this.startListen('change', this.getField('tariffs'), this.calculateCost.bind(this));
+    this.startListen('change', this.getField('tariffs'), function (Event) {
+        this.calculateCost();
+    }.bind(this));
 };
 
 GNewForm.prototype.calculateCost = function (Event) {
-    console.log(this.params)
-    console.log(Event)
-    console.log(Event)
+    var
+        that = this,
+        $target = $(this.getField('cost'));
+
+    setTimeout(function() {
+        that.messenger.calculateCost(that.params, function (cost) {
+            that.setCost($target, cost);
+            that.showCost($target);
+        }.bind(that), function(e) {
+            console.error(e)
+        });
+    }, 200);
+};
+
+GNewForm.prototype.setCost = function ($target, cost) {
+    console.log(cost);
+};
+
+GNewForm.prototype.showCost = function ($target) {
+
 };
 
 GNewForm.prototype.waitGeoObjects = function () {
