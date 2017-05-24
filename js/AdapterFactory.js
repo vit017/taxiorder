@@ -4,8 +4,13 @@ var AdapterFactory = function () {
         return new Adapter();
     };
 
+    var createForm = function () {
+        return new Form();
+    };
+
     return {
-        createAdapter: createAdapter
+        createAdapter: createAdapter,
+        createForm: createForm
     }
 
 };
