@@ -1,7 +1,7 @@
 var AdapterFactory = function () {
 
     var createAdapter = function () {
-        return new Adapter();
+        return new TaxiMasterAdapter();
     };
 
     var createForm = function () {
