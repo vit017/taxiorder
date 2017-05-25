@@ -98,6 +98,7 @@ DemoNewForm.prototype.setTariffs = function ($target, tariffs) {
     });
 
     $target.append($documentFragment);
+    this.setParam('tariffID', tariffs[0].id);
 };
 
 DemoNewForm.prototype.showTariffs = function ($target) {
