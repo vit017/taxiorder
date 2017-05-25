@@ -103,6 +103,20 @@ AbstractAdapter.prototype.rejectOrder = function (orderID, success, error) {
     }));
 };
 
+AbstractAdapter.prototype.getOrderInfo = function (orderID, success, error) {
+    var that = this,
+        params = {
+            orderId: orderID
+        };
+
+    this.process(new Request({
+        url: that.url + 'getOrderInfo',
+        params: params,
+        success: success,
+        error: error
+    }));
+};
+
 AbstractAdapter.prototype.wrapTimeout = function (func, functionName, timeoutValue) {
     clearTimeout(this[functionName].timeOut);
     this[functionName].timeOut = setTimeout(func, timeoutValue);

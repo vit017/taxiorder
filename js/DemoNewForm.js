@@ -214,25 +214,17 @@ DemoNewForm.prototype.waitOrderTime = function () {
     this.startListen('click', '.tm_selector label', function (Event) {
         var
             $target = this.getEventTarget(Event),
-            dataAttribute = this.getFieldAttr($target, 'data-time'),
+            dataAttribute = +this.getFieldAttr($target, 'data-time'),
             orderTime = '',
             now = new Date();
 
-        if (!dataAttribute) {
+        if (!isFinite(dataAttribute)) {
             return;
         }
 
-        switch (dataAttribute) {
-            case '15':
-                now.setMinutes(now.getMinutes() + +dataAttribute);
-                orderTime = this.messenger.formatOrderTime(now);
-                break;
-            case '30':
-                now.setMinutes(now.getMinutes() + +dataAttribute);
-                orderTime = this.messenger.formatOrderTime(now);
-                break;
-            default:
-                orderTime = '';
+        if (dataAttribute) {
+            now.setMinutes(now.getMinutes() + dataAttribute);
+            orderTime = this.messenger.formatOrderTime(now);
         }
 
         this.setParam('orderTime', orderTime);
@@ -288,7 +280,7 @@ DemoNewForm.prototype.tryCreateOrder = function () {
             return;
         }
 
-        this.setAuthorizedPhone(phone);
+        this.setAuthorizedPhone({phone: phone});
         this.createOrder();
 
     }.bind(this));
@@ -314,20 +306,31 @@ DemoNewForm.prototype.isAuthorizedPhone = function (phone) {
 };
 
 DemoNewForm.prototype.setAuthorizedPhone = function (params) {
+    if (!params || !params.phone) {
+        throw new Error('Params.phone is required');
+    }
+
     this.authorizePhones[params.phone] = true;
 
-    var
-        cookieBrowserKey = {
-            name: 'browserKey',
-            value: params.browserKey
-        },
-        cookieToken = {
-            name: 'token',
-            value: params.token
-        };
+    if (params.browserKey) {
+        var
+            cookieBrowserKey = {
+                name: 'browserKey',
+                value: params.browserKey
+            };
 
-    this.setCookie(cookieBrowserKey);
-    this.setCookie(cookieToken);
+        this.setCookie(cookieBrowserKey);
+    }
+
+    if (params.token) {
+        var
+            cookieToken = {
+                name: 'token',
+                value: params.token
+            };
+
+        this.setCookie(cookieToken);
+    }
 };
 
 DemoNewForm.prototype.tryAuthorize = function (phone, done) {
@@ -390,6 +393,26 @@ DemoNewForm.prototype.createOrder = function () {
     }.bind(this));
 };
 
-DemoNewForm.prototype.startOrderInfo = function (orderID) {
+DemoNewForm.prototype.rejectOrder = function (orderID) {
+    this.messenger.rejectOrder(orderID, function (rejected) {
 
+        this.showPopup(rejected);
+
+    }.bind(this));
+};
+
+DemoNewForm.prototype.startOrderInfo = function (orderID) {
+    if (!orderID) {
+        throw new Error('orderID is required');
+    }
+
+    this.startOrderInfo.interval = setInterval(function () {
+        this.messenger.getOrderInfo(orderID, this.showOrderInfo.bind(this));
+    }.bind(this), 1000);
+};
+
+DemoNewForm.prototype.showOrderInfo = function (orderInfo) {
+    console.log(orderInfo)
+    //carId
+    //statusLabel
 };
