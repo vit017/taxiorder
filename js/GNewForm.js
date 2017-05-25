@@ -253,3 +253,137 @@ GNewForm.prototype.afterSetParam = function (key) {
 GNewForm.prototype.defineDirection = function ($target) {
     return $target.closest('.direction').attr('data-direction');
 };
+
+GNewForm.prototype.waitCreateOrder = function () {
+    this.startListen('click', '#button-create-order', function (Event) {
+        this.preventEvent(Event);
+
+        var $phone = $(this.getField('phone')),
+            phone = this.getFieldValue($phone).trim();
+
+        if (!phone.length) {
+            $phone.addClass('error');
+            return;
+        }
+
+        this.tryAuthorize(phone, function () {
+            this.createOrder();
+        }.bind(this));
+
+    }.bind(this));
+};
+
+GNewForm.prototype.tryAuthorize = function (phone, then) {
+    if (!phone.length) {
+        throw new Error('Phone is required');
+    }
+
+    this.isAuthorizedPhone(phone, then, function () {
+        this.sendSms(phone, function () {
+            go_to_step(2);
+            this.waitConfirmSms(then);
+            this.waitSendSmsAgain();
+        }.bind(this));
+    }.bind(this));
+};
+
+GNewForm.prototype.isAuthorizedPhone = function (phone, yes, no) {
+    this.messenger.isAuthorizedPhone(phone, yes, no);
+};
+
+GNewForm.prototype.sendSms = function (phone, then) {
+    this.messenger.sendSms(phone, function (sendResult) {
+        if (!sendResult.success) {
+            this.showPopup(sendResult.text);
+            return;
+        }
+
+        if (TypeHelper.isFunction(then)) {
+            then();
+        }
+    }.bind(this));
+};
+
+GNewForm.prototype.waitConfirmSms = function (then) {
+    this.startListen('click', '#go_to_step3', function (Event) {
+        this.preventEvent(Event);
+
+        var $smsCode = $('#smsCode'),
+            smsCode = this.getFieldValue($smsCode).trim(),
+            phone = this.getParam('phone');
+
+        if (!smsCode.length) {
+            $smsCode.addClass('error');
+            return;
+        }
+
+        this.confirmSms(phone, smsCode, then);
+    }.bind(this));
+};
+
+GNewForm.prototype.waitSendSmsAgain = function () {
+    this.startListen('click', '.send_again', function (Event) {
+        this.preventEvent(Event);
+        var
+            phone = this.getParam('phone');
+
+        if (!phone) {
+            throw new Error('phone is required');
+        }
+
+        this.sendSms(phone);
+    }.bind(this));
+};
+
+GNewForm.prototype.confirmSms = function (phone, smsCode, then) {
+    var params = {
+        phone: phone,
+        smsCode: smsCode
+    };
+
+    this.messenger.confirmSms(params, function (confirmResult) {
+        if (!confirmResult.success) {
+            this.showPopup(confirmResult.text);
+            return;
+        }
+
+        this.messenger.setAuthorizedPhone(confirmResult, then);
+    }.bind(this));
+};
+
+GNewForm.prototype.createOrder = function () {
+    var params = this.getParams();
+
+    this.messenger.createOrder(params, function (orderResult) {
+        var orderID = +orderResult;
+
+        if (orderID > 0) {
+            this.startOrderInfo(orderID);
+            go_to_step(3);
+        }
+    }.bind(this));
+};
+
+GNewForm.prototype.rejectOrder = function (orderID) {
+    this.messenger.rejectOrder(orderID, function (rejected) {
+
+        this.showPopup(rejected);
+
+    }.bind(this));
+};
+
+GNewForm.prototype.startOrderInfo = function (orderID) {
+    if (!orderID) {
+        throw new Error('orderID is required');
+    }
+
+    this.startOrderInfo.interval = setInterval(function () {
+        this.messenger.getOrderInfo(orderID, this.showOrderInfo.bind(this));
+    }.bind(this), 4000);
+};
+
+GNewForm.prototype.showOrderInfo = function (orderInfo) {
+    console.log(orderInfo)
+    //carId
+    //statusLabel
+};
