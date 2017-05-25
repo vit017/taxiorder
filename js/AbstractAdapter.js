@@ -53,7 +53,7 @@ AbstractAdapter.prototype.needSendSms = function (clientPhone, success, error) {
     var
         phone = clientPhone.trim();
 
-    if (this.isCorrectPhone(phone)) {
+    if (!this.isCorrectPhone(phone)) {
         throw new Error('Phone is required');
     }
 
@@ -73,7 +73,7 @@ AbstractAdapter.prototype.sendSms = function (clientPhone, success, error) {
     var
         phone = clientPhone.trim();
 
-    if (this.isCorrectPhone(phone)) {
+    if (!this.isCorrectPhone(phone)) {
         throw new Error('Phone is required');
     }
 
@@ -169,7 +169,7 @@ AbstractAdapter.prototype.process = function (request, beforeSendResponse) {
 };
 
 AbstractAdapter.prototype.isSuccessfulRequest = function (data) {
-    return typeof data === 'object' && +data.status > 0;
+    return TypeHelper.checkType(data, {}) && +data.status > 0;
 };
 
 AbstractAdapter.prototype.setCookie = function (params) {
