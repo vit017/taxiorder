@@ -126,7 +126,7 @@ GNewForm.prototype.waitTariffChange = function () {
     }.bind(this));
 };
 
-GNewForm.prototype.calculateCost = function (Event) {
+GNewForm.prototype.calculateCost = function () {
     var
         params = this.getParams(),
         $target = $(this.getField('cost'));
@@ -231,7 +231,7 @@ GNewForm.prototype.waitOrderTime = function () {
         this.setParam('orderTime', this.getFieldValue($orderTimeField));
     }.bind(this));
 
-    this.startListen('click', '.order-now', function (Event) {
+    this.startListen('click', '.order-now', function () {
         this.setParam('orderTime', '');
     }.bind(this));
 };
