@@ -79,11 +79,3 @@ AbstractForm.prototype.afterSetParam = function (key, value) {
 AbstractForm.prototype.showPopup = function (content) {
     alert(content);
 };
-
-AbstractForm.prototype.setCookie = function (params) {
-    Cookies.set(params.name, params.value, params.attributes);
-};
-
-AbstractForm.prototype.getCookie = function (name) {
-    return Cookies.get(name);
-};

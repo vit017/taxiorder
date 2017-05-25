@@ -1,7 +1,6 @@
 function DemoNewForm() {
     this.params = {};
     this.messenger = {};
-    this.authorizePhones = {};
 
     this.setFields();
     this.initParamsEvents();
@@ -233,7 +232,7 @@ DemoNewForm.prototype.waitOrderTime = function () {
     }.bind(this));
 };
 
-DemoNewForm.prototype.afterSetParam = function (key, value) {
+DemoNewForm.prototype.afterSetParam = function (key) {
     var fieldsEvents = this.getFieldsEvents();
 
     if (!fieldsEvents.hasOwnProperty(key)) {
@@ -263,90 +262,35 @@ DemoNewForm.prototype.waitCreateOrder = function () {
             return;
         }
 
-        this.tryCreateOrder();
+        this.tryAuthorize(phone, function () {
+            this.createOrder();
+        }.bind(this));
+
     }.bind(this));
 };
 
-DemoNewForm.prototype.tryCreateOrder = function () {
-    var phone = this.getParam('phone');
-
+DemoNewForm.prototype.tryAuthorize = function (phone, then) {
     if (!phone.length) {
-        console.error('Phone is required');
-        return false;
+        throw new Error('Phone is required');
     }
 
-    this.checkAuthorize(phone, function (isAuthorize) {
+    this.messenger.isAuthorizedPhone(phone, then, function () {
+        this.authorize(phone, then);
+    }.bind(this));
+};
 
-        if (!isAuthorize) {
-            this.tryAuthorize(phone, this.waitConfirmSms.bind(this));
+DemoNewForm.prototype.authorize = function (phone, then) {
+    this.messenger.sendSms(phone, function (sendResult) {
+        if (!sendResult.success) {
+            this.showPopup(sendResult.text);
             return;
         }
-
-        this.setAuthorizedPhone({phone: phone});
-        this.createOrder();
-
+        go_to_step(3);
+        this.waitConfirmSms(then);
     }.bind(this));
 };
 
-DemoNewForm.prototype.checkAuthorize = function (clientPhone, done) {
-    var phone = clientPhone.trim();
-
-    if (this.isAuthorizedPhone(phone)) {
-        done(true);
-        return;
-    }
-
-    this.messenger.needSendSms(phone, function (need) {
-        done(!need);
-    }.bind(this), function (e) {
-        console.error(e);
-    });
-};
-
-DemoNewForm.prototype.isAuthorizedPhone = function (phone) {
-    return this.authorizePhones.hasOwnProperty(phone);
-};
-
-DemoNewForm.prototype.setAuthorizedPhone = function (params) {
-    if (!params || !params.phone) {
-        throw new Error('Params.phone is required');
-    }
-
-    this.authorizePhones[params.phone] = true;
-
-    if (params.browserKey) {
-        var
-            cookieBrowserKey = {
-                name: 'browserKey',
-                value: params.browserKey
-            };
-
-        this.setCookie(cookieBrowserKey);
-    }
-
-    if (params.token) {
-        var
-            cookieToken = {
-                name: 'token',
-                value: params.token
-            };
-
-        this.setCookie(cookieToken);
-    }
-};
-
-DemoNewForm.prototype.tryAuthorize = function (phone, done) {
-    this.messenger.sendSms(phone, function (sendResult) {
-        this.showPopup(sendResult.text);
-
-        if (sendResult.success) {
-            done();
-            go_to_step(3);
-        }
-    }.bind(this));
-};
-
-DemoNewForm.prototype.waitConfirmSms = function () {
+DemoNewForm.prototype.waitConfirmSms = function (then) {
     this.startListen('click', '#BUTTON_SMS', function (Event) {
         this.preventEvent(Event);
 
@@ -359,11 +303,11 @@ DemoNewForm.prototype.waitConfirmSms = function () {
             return;
         }
 
-        this.tryConfirmSms(phone, smsCode);
+        this.confirmSms(phone, smsCode, then);
     }.bind(this));
 };
 
-DemoNewForm.prototype.tryConfirmSms = function (phone, smsCode) {
+DemoNewForm.prototype.confirmSms = function (phone, smsCode, then) {
     var params = {
         phone: phone,
         smsCode: smsCode
@@ -375,10 +319,7 @@ DemoNewForm.prototype.tryConfirmSms = function (phone, smsCode) {
             return;
         }
 
-        this.setAuthorizedPhone(confirmResult);
-
-        this.createOrder();
-
+        then();
     }.bind(this));
 };
 

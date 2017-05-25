@@ -189,3 +189,11 @@ AbstractAdapter.prototype.sendResponse = function (Response, done) {
         });
     }
 };
+
+AbstractAdapter.prototype.setCookie = function (params) {
+    Cookies.set(params.name, params.value, params.attributes);
+};
+
+AbstractAdapter.prototype.getCookie = function (name) {
+    return Cookies.get(name);
+};

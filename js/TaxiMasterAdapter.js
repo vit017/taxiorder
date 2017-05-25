@@ -1,5 +1,6 @@
 function TaxiMasterAdapter() {
     this.url = '/api_integration/index_client.php?command=';
+    this.authorizePhones = {};
 }
 TaxiMasterAdapter.prototype = Object.create(AbstractAdapter.prototype);
 TaxiMasterAdapter.constructor = TaxiMasterAdapter;
@@ -12,6 +13,45 @@ TaxiMasterAdapter.prototype.formatOrderTime = function (OrderTime) {
         return val;
     };
     return addZero(OrderTime.getDate()) + '.' + addZero(OrderTime.getMonth() + 1) + '.' + OrderTime.getFullYear() + ' ' + addZero(OrderTime.getHours()) + ':' + addZero(OrderTime.getMinutes()) + ':' + addZero(OrderTime.getSeconds());
+};
+
+TaxiMasterAdapter.prototype.isAuthorizedPhone = function (phone, yes, no) {
+    if (this.authorizePhones.hasOwnProperty(phone)) {
+        yes();
+        return;
+    }
+
+    this.needSendSms(phone, function (need) {
+        need ? no() : yes();
+    });
+};
+
+TaxiMasterAdapter.prototype.setAuthorizedPhone = function (params) {
+    if (!params || !params.phone) {
+        return;
+    }
+
+    this.authorizePhones[params.phone] = true;
+
+    if (params.browserKey) {
+        var
+            cookieBrowserKey = {
+                name: 'browserKey',
+                value: params.browserKey
+            };
+
+        this.setCookie(cookieBrowserKey);
+    }
+
+    if (params.token) {
+        var
+            cookieToken = {
+                name: 'token',
+                value: params.token
+            };
+
+        this.setCookie(cookieToken);
+    }
 };
 
 TaxiMasterAdapter.prototype.createEmptyParam = function () {
