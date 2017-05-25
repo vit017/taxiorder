@@ -13,16 +13,18 @@ AbstractAdapter.prototype.isCorrectPhone = function (clientPhone) {
 };
 
 AbstractAdapter.prototype.findTariffs = function (success, error) {
+    var that = this;
+
     this.process(new Request({
-        url: this.url + 'findTariffs',
+        url: that.url + 'findTariffs',
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.findGeoObjects = function (clientParams, success, error) {
 
-    var
+    var that = this,
         text = clientParams.text.trim();
 
     if (text.length < 3) {
@@ -39,18 +41,18 @@ AbstractAdapter.prototype.findGeoObjects = function (clientParams, success, erro
     this.wrapTimeout(function () {
 
         this.process(new Request({
-            url: this.url + 'findGeoObjects',
+            url: that.url + 'findGeoObjects',
             params: params,
             success: success,
             error: error
-        }.bind(this)));
+        }));
 
-    }.bind(this), 'findGeoObjects', 400);
+    }, 'findGeoObjects', 400);
 
 };
 
 AbstractAdapter.prototype.needSendSms = function (clientPhone, success, error) {
-    var
+    var that = this,
         phone = clientPhone.trim();
 
     if (!this.isCorrectPhone(phone)) {
@@ -62,15 +64,15 @@ AbstractAdapter.prototype.needSendSms = function (clientPhone, success, error) {
     };
 
     this.process(new Request({
-        url: this.url + 'needSendSms',
+        url: that.url + 'needSendSms',
         params: params,
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.sendSms = function (clientPhone, success, error) {
-    var
+    var that = this,
         phone = clientPhone.trim();
 
     if (!this.isCorrectPhone(phone)) {
@@ -82,59 +84,58 @@ AbstractAdapter.prototype.sendSms = function (clientPhone, success, error) {
     };
 
     this.process(new Request({
-        url: this.url + 'sendSms',
+        url: that.url + 'sendSms',
         params: params,
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.confirmSms = function (clientParams, success, error) {
-    var
+    var that = this,
         params = {
             phone: clientParams.phone,
             smsCode: clientParams.smsCode
         };
 
     this.process(new Request({
-        url: this.url + 'login',
+        url: that.url + 'login',
         params: params,
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.rejectOrder = function (orderID, success, error) {
-    var
+    var that = this,
         params = {
             orderId: +orderID
         };
 
     this.process(new Request({
-        url: this.url + 'rejectOrder',
+        url: that.url + 'rejectOrder',
         params: params,
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.getOrderInfo = function (orderID, success, error) {
-    var
+    var that = this,
         params = {
             orderId: +orderID
         };
 
     this.process(new Request({
-        url: this.url + 'getOrderInfo',
+        url: that.url + 'getOrderInfo',
         params: params,
         success: success,
         error: error
-    }.bind(this)));
+    }));
 };
 
 AbstractAdapter.prototype.process = function (request, beforeSendResponse) {
-    var
-        that = this,
+    var that = this,
         response = new Response();
 
     $.ajax({
