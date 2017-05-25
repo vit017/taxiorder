@@ -1,6 +1,7 @@
 function DemoNewForm() {
     this.params = {};
     this.messenger = {};
+    this.listeners = {};
 
     this.setFields();
     this.setParamsEvents();
@@ -159,8 +160,8 @@ DemoNewForm.prototype.getValidateResultsField = function () {
     return $('#result-message');
 };
 
-DemoNewForm.prototype.getCreateOrderButton = function () {
-    return $('#BUTTON_CREATE_ORDER');
+DemoNewForm.prototype.getCreateOrderSelector = function () {
+    return '#BUTTON_CREATE_ORDER';
 };
 
 DemoNewForm.prototype.toggleAuthorizationStep = function () {
@@ -171,15 +172,15 @@ DemoNewForm.prototype.toggleOrderInfoStep = function () {
     go_to_step(4);
 };
 
-DemoNewForm.prototype.getConfirmPhoneButton = function () {
-    return $('#BUTTON_SMS');
+DemoNewForm.prototype.getConfirmPhoneSelector = function () {
+    return '#BUTTON_SMS';
 };
 
-DemoNewForm.prototype.getSmsCodeField = function () {
-    return $('#FIELD_SMS');
+DemoNewForm.prototype.getSmsCodeSelector = function () {
+    return '#FIELD_SMS';
 };
 
-DemoNewForm.prototype.getSendSmsAgainButton = function () {
+DemoNewForm.prototype.getSendSmsAgainSelector = function () {
     return '.send_again';
 };
 

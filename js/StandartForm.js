@@ -128,49 +128,50 @@ StandartForm.prototype.afterSetParam = function (key) {
 };
 
 StandartForm.prototype.calculateCost = function () {
-    var
-        params = this.getParams(),
-        $target = $(this.getField('cost'));
+    var that = this,
+        params = that.getParams(),
+        $target = $(that.getField('cost'));
 
-    clearTimeout(this.calculateCost.timeout);
-    this.calculateCost.timeout = setTimeout(function () {
-        this.messenger.calculateCost(params, function (cost) {
-            this.setCost($target, cost);
-            this.showCost($target);
-        }.bind(this), function (e) {
-            console.error(e)
+    clearTimeout(that.calculateCost.timeout);
+    that.calculateCost.timeout = setTimeout(function () {
+        that.messenger.calculateCost(params, function (cost) {
+            that.setCost($target, cost);
+            that.showCost($target);
         });
-    }.bind(this), 200);
+    }, 200);
 };
 
 StandartForm.prototype.waitCreateOrder = function () {
     var that = this,
-        $createOrderButton = that.getCreateOrderButton();
+        createOrderSelector = that.getCreateOrderSelector();
 
-    that.startListen('click', $createOrderButton, function (Event) {
-        that.preventEvent(Event);
+    that.startListen('click', createOrderSelector, that.tryCreateOrder.bind(that));
+};
 
-        var $phone = $(that.getField('phone')),
-            phone = that.getFieldValue($phone).trim();
+StandartForm.prototype.tryCreateOrder = function (Event) {
+    var that = this;
+    
+    that.preventEvent(Event);
 
-        if (!phone.length) {
-            $phone.addClass('error');
+    var $phone = $(that.getField('phone')),
+        phone = that.getFieldValue($phone).trim();
+
+    if (!phone.length) {
+        $phone.addClass('error');
+        return;
+    }
+
+    var $validateResultField = that.getValidateResultsField();
+
+    $validateResultField.empty();
+    that.validateParams(function (validateResult) {
+        if (!validateResult.result) {
+            $validateResultField.html(validateResult.html);
             return;
         }
 
-        var $validateResultField = that.getValidateResultsField();
-
-        $validateResultField.empty();
-        that.validateParams(function (validateResult) {
-            if (!validateResult.result) {
-                $validateResultField.html(validateResult.html);
-                return;
-            }
-
-            that.tryAuthorize(phone, function () {
-                that.createOrder();
-            });
-
+        that.tryAuthorize(phone, function () {
+            that.createOrder();
         });
 
     });
@@ -217,28 +218,24 @@ StandartForm.prototype.sendSms = function (phone, then) {
 StandartForm.prototype.waitConfirmSms = function (then) {
     var that = this;
 
-    that.startListen('click', that.getConfirmPhoneButton(), function (Event) {
-        that.preventEvent(Event);
-
-        var $smsCode = that.getSmsCodeField(),
-            smsCode = that.getFieldValue($smsCode).trim(),
-            phone = that.getParam('phone');
-
-        if (!smsCode.length) {
-            $smsCode.addClass('error');
-            return;
-        }
-
-        that.confirmSms(phone, smsCode, then);
-    });
+    that.startListen('click', that.getConfirmPhoneSelector(), that.confirmSms.bind(that, then));
 };
 
-StandartForm.prototype.confirmSms = function (phone, smsCode, then) {
+StandartForm.prototype.confirmSms = function (then) {
     var that = this,
-        params = {
-            phone: phone,
-            smsCode: smsCode
-        };
+        $smsCode = $(that.getSmsCodeSelector()),
+        smsCode = that.getFieldValue($smsCode).trim(),
+        phone = that.getParam('phone');
+
+    if (!smsCode.length) {
+        $smsCode.addClass('error');
+        return;
+    }
+
+    var params = {
+        phone: phone,
+        smsCode: smsCode
+    };
 
     that.messenger.confirmSms(params, function (confirmResult) {
         if (!confirmResult.success) {
@@ -253,7 +250,7 @@ StandartForm.prototype.confirmSms = function (phone, smsCode, then) {
 StandartForm.prototype.waitSendSmsAgain = function () {
     var that = this;
 
-    this.startListen('click', this.getSendSmsAgainButton(), function (Event) {
+    this.startListen('click', this.getSendSmsAgainSelector(), function (Event) {
         that.preventEvent(Event);
         var
             phone = that.getParam('phone');
