@@ -275,18 +275,26 @@ DemoNewForm.prototype.tryAuthorize = function (phone, then) {
     }
 
     this.messenger.isAuthorizedPhone(phone, then, function () {
-        this.authorize(phone, then);
+        this.sendSms(phone, function () {
+            go_to_step(3);
+            this.waitConfirmSms(then);
+            this.waitSendSmsAgain();
+        });
     }.bind(this));
 };
 
-DemoNewForm.prototype.authorize = function (phone, then) {
+DemoNewForm.prototype.sendSms = function (phone, then) {
     this.messenger.sendSms(phone, function (sendResult) {
         if (!sendResult.success) {
             this.showPopup(sendResult.text);
             return;
         }
-        go_to_step(3);
-        this.waitConfirmSms(then);
+        
+        if (!then || typeof then !== 'function') {
+            return;
+        }
+
+        then();
     }.bind(this));
 };
 
@@ -307,6 +315,20 @@ DemoNewForm.prototype.waitConfirmSms = function (then) {
     }.bind(this));
 };
 
+DemoNewForm.prototype.waitSendSmsAgain = function () {
+    this.startListen('click', '.send_again', function (Event) {
+        this.preventEvent(Event);
+        var
+            phone = this.getParam('phone');
+
+        if (!phone) {
+            throw new Error('phone is required');
+        }
+
+        this.sendSms(phone);
+    }.bind(this));
+};
+
 DemoNewForm.prototype.confirmSms = function (phone, smsCode, then) {
     var params = {
         phone: phone,
@@ -318,7 +340,7 @@ DemoNewForm.prototype.confirmSms = function (phone, smsCode, then) {
             this.showPopup(confirmResult.text);
             return;
         }
-
+        this.messenger.setAuthorizedPhone(confirmResult);
         then();
     }.bind(this));
 };
