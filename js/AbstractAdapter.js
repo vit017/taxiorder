@@ -40,6 +40,68 @@ AbstractAdapter.prototype.findGeoObjects = function (clientParams, success, erro
 
 };
 
+AbstractAdapter.prototype.needSendSms = function (clientPhone, success, error) {
+    var that = this,
+        phone = clientPhone.trim();
+
+    if (!phone) {
+        throw new Error('Phone is required');
+    }
+
+    var params = {
+        phone: phone
+    };
+
+    this.process(new Request({
+        url: that.url + 'needSendSms',
+        params: params,
+        success: success,
+        error: error
+    }));
+};
+
+AbstractAdapter.prototype.sendSms = function (clientPhone, success, error) {
+    var that = this,
+        params = {
+            phone: clientPhone
+        };
+
+    this.process(new Request({
+        url: that.url + 'sendSms',
+        params: params,
+        success: success,
+        error: error
+    }));
+};
+
+AbstractAdapter.prototype.confirmSms = function (clientParams, success, error) {
+    var that = this,
+        params = {
+            phone: clientParams.phone,
+            smsCode: clientParams.smsCode
+        };
+
+    this.process(new Request({
+        url: that.url + 'login',
+        params: params,
+        success: success,
+        error: error
+    }));
+};
+
+AbstractAdapter.prototype.rejectOrder = function (orderID, success, error) {
+    var that = this,
+        params = {
+            orderId: orderID
+        };
+
+    this.process(new Request({
+        url: that.url + 'rejectOrder',
+        params: params,
+        success: success,
+        error: error
+    }));
+};
 
 AbstractAdapter.prototype.wrapTimeout = function (func, functionName, timeoutValue) {
     clearTimeout(this[functionName].timeOut);

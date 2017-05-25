@@ -1,6 +1,7 @@
 function DemoNewForm() {
     this.params = {};
     this.messenger = {};
+    this.authorizePhones = {};
 
     this.setFields();
     this.initParamsEvents();
@@ -24,7 +25,7 @@ DemoNewForm.prototype.setFields = function () {
         phone: '#FIELD_PHONE',
         tariffID: '#FIELD_TARIFFS',
         cost: '#RESULT_COST_SUM',
-        orderTime: '#FIELD_TIME'
+        orderTime: '#FIELD_TIME',
     };
 };
 
@@ -73,6 +74,7 @@ DemoNewForm.prototype.fieldChanged = function (field, Event) {
         $target = this.getEventTarget(Event);
 
     this.setParam(field, that.getFieldValue($target));
+    console.log(this)
 };
 
 DemoNewForm.prototype.findTariffs = function () {
@@ -221,8 +223,6 @@ DemoNewForm.prototype.waitOrderTime = function () {
         }
 
         switch (dataAttribute) {
-            case 'now':
-                break;
             case '15':
                 now.setMinutes(now.getMinutes() + +dataAttribute);
                 orderTime = this.messenger.formatOrderTime(now);
@@ -231,6 +231,8 @@ DemoNewForm.prototype.waitOrderTime = function () {
                 now.setMinutes(now.getMinutes() + +dataAttribute);
                 orderTime = this.messenger.formatOrderTime(now);
                 break;
+            default:
+                orderTime = '';
         }
 
         this.setParam('orderTime', orderTime);
@@ -255,3 +257,139 @@ DemoNewForm.prototype.defineDirection = function ($target) {
     return $target.closest('.direction_input').attr('data-direction');
 };
 
+DemoNewForm.prototype.waitCreateOrder = function () {
+    this.startListen('click', '#BUTTON_CREATE_ORDER', function (Event) {
+        this.preventEvent(Event);
+
+        var $phone = $(this.getField('phone')),
+            phone = this.getFieldValue($phone).trim();
+
+        if (!phone.length) {
+            $phone.addClass('error');
+            return;
+        }
+
+        this.tryCreateOrder();
+    }.bind(this));
+};
+
+DemoNewForm.prototype.tryCreateOrder = function () {
+    var phone = this.getParam('phone');
+
+    if (!phone.length) {
+        console.error('Phone is required');
+        return false;
+    }
+
+    this.checkAuthorize(phone, function (isAuthorize) {
+
+        if (!isAuthorize) {
+            this.tryAuthorize(phone, this.waitConfirmSms.bind(this));
+            return;
+        }
+
+        this.setAuthorizedPhone(phone);
+        this.createOrder();
+
+    }.bind(this));
+};
+
+DemoNewForm.prototype.checkAuthorize = function (clientPhone, done) {
+    var phone = clientPhone.trim();
+
+    if (this.isAuthorizedPhone(phone)) {
+        done(true);
+        return;
+    }
+
+    this.messenger.needSendSms(phone, function (need) {
+        done(!need);
+    }.bind(this), function (e) {
+        console.error(e);
+    });
+};
+
+DemoNewForm.prototype.isAuthorizedPhone = function (phone) {
+    return this.authorizePhones.hasOwnProperty(phone);
+};
+
+DemoNewForm.prototype.setAuthorizedPhone = function (params) {
+    this.authorizePhones[params.phone] = true;
+
+    var
+        cookieBrowserKey = {
+            name: 'browserKey',
+            value: params.browserKey
+        },
+        cookieToken = {
+            name: 'token',
+            value: params.token
+        };
+
+    this.setCookie(cookieBrowserKey);
+    this.setCookie(cookieToken);
+};
+
+DemoNewForm.prototype.tryAuthorize = function (phone, done) {
+    this.messenger.sendSms(phone, function (sendResult) {
+        this.showPopup(sendResult.text);
+
+        if (sendResult.success) {
+            done();
+            go_to_step(3);
+        }
+    }.bind(this));
+};
+
+DemoNewForm.prototype.waitConfirmSms = function () {
+    this.startListen('click', '#BUTTON_SMS', function (Event) {
+        this.preventEvent(Event);
+
+        var $smsCode = $('#FIELD_SMS'),
+            smsCode = this.getFieldValue($smsCode).trim(),
+            phone = this.getParam('phone');
+
+        if (!smsCode.length) {
+            $smsCode.addClass('error');
+            return;
+        }
+
+        this.tryConfirmSms(phone, smsCode);
+    }.bind(this));
+};
+
+DemoNewForm.prototype.tryConfirmSms = function (phone, smsCode) {
+    var params = {
+        phone: phone,
+        smsCode: smsCode
+    };
+
+    this.messenger.confirmSms(params, function (confirmResult) {
+        if (!confirmResult.success) {
+            this.showPopup(confirmResult.text);
+            return;
+        }
+
+        this.setAuthorizedPhone(confirmResult);
+
+        this.createOrder();
+
+    }.bind(this));
+};
+
+DemoNewForm.prototype.createOrder = function () {
+    var params = this.getParams();
+
+    this.messenger.createOrder(params, function (orderResult) {
+        var orderID = +orderResult;
+
+        if (orderID > 0) {
+            this.startOrderInfo(orderID);
+            go_to_step(4);
+        }
+    }.bind(this));
+};
+
+DemoNewForm.prototype.startOrderInfo = function (orderID) {
+
+};
