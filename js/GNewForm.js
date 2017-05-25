@@ -1,6 +1,15 @@
 function GNewForm() {
     this.params = {};
     this.messenger = {};
+
+    this.setFields();
+    this.initParamsEvents();
+}
+
+GNewForm.prototype = Object.create(AbstractForm.prototype);
+GNewForm.constructor = GNewForm;
+
+GNewForm.prototype.setFields = function () {
     this.fields = {
         cityFrom: '',
         streetFrom: '#input-from-street',
@@ -15,18 +24,34 @@ function GNewForm() {
         comment: '#input-from-comment',
         phone: '#input-user-phone',
         clientName: '#input-user-name',
-        tariffs: '#input-tariffs'
+        tariffID: '#input-tariffs',
+        orderTime: '#input-order-time'
     }
-}
+};
 
-GNewForm.prototype = Object.create(AbstractForm.prototype);
-GNewForm.constructor = GNewForm;
+GNewForm.prototype.initParamsEvents = function () {
+    var calculateCost = this.calculateCost.bind(this);
+
+    this.fieldsRaiseEvents = {
+        streetFrom: [calculateCost],
+        houseFrom: [calculateCost],
+        porchFrom: [calculateCost],
+        streetTo: [calculateCost],
+        houseTo: [calculateCost],
+        tariffID: [calculateCost],
+        orderTime: [calculateCost]
+    };
+};
+
+GNewForm.prototype.getFieldsEvents = function () {
+    return this.fieldsRaiseEvents;
+};
 
 GNewForm.prototype.waitFieldsEvents = function () {
     var
         that = this,
         fields = this.getFields(),
-        addressFields = [
+        fieldsEvents = [
             'streetFrom',
             'houseFrom',
             'housingFrom',
@@ -37,10 +62,11 @@ GNewForm.prototype.waitFieldsEvents = function () {
             'porchTo',
             'phone',
             'comment',
-            'clientName'
+            'clientName',
+            'orderTime'
         ];
 
-    addressFields.forEach(function (field) {
+    fieldsEvents.forEach(function (field) {
         if (fields.hasOwnProperty(field)) {
             that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
         }
@@ -49,25 +75,23 @@ GNewForm.prototype.waitFieldsEvents = function () {
 
 GNewForm.prototype.fieldChanged = function (field, Event) {
     var
-        that = this,
         $target = this.getEventTarget(Event);
 
-    this.setParam(field, that.getFieldValue($target));
-    this.calculateCost(Event);
+    this.setParam(field, this.getFieldValue($target));
 };
 
 GNewForm.prototype.findTariffs = function () {
     var
-        $target = $(this.getField('tariffs')).find('select');
+        $target = $(this.getField('tariffID')).find('select');
 
-    this.messenger.findTariffs(function(tariffs) {
+    this.messenger.findTariffs(function (tariffs) {
         this.setTariffs($target, tariffs);
         this.showTariffs($target);
         this.waitTariffChange();
     }.bind(this));
 };
 
-GNewForm.prototype.setTariffs = function($target, tariffs) {
+GNewForm.prototype.setTariffs = function ($target, tariffs) {
     var
         $documentFragment = $(document.createDocumentFragment()),
         option = {};
@@ -83,29 +107,33 @@ GNewForm.prototype.setTariffs = function($target, tariffs) {
 };
 
 GNewForm.prototype.showTariffs = function ($target) {
-    $(this.getField('tariffs')).show();
+    $(this.getField('tariffID')).show();
     $target.show();
 };
 
 GNewForm.prototype.waitTariffChange = function () {
-    this.startListen('change', this.getField('tariffs'), function (Event) {
-        this.calculateCost();
+    this.startListen('change', this.getField('tariffID'), function (Event) {
+        var
+            $target = this.getEventTarget(Event),
+            tariffID = +this.getFieldValue($target);
+
+        this.setParam('tariffID', tariffID);
     }.bind(this));
 };
 
 GNewForm.prototype.calculateCost = function (Event) {
     var
-        that = this,
+        params = this.getParams(),
         $target = $(this.getField('cost'));
 
-    setTimeout(function() {
-        that.messenger.calculateCost(that.params, function (cost) {
-            that.setCost($target, cost);
-            that.showCost($target);
-        }.bind(that), function(e) {
+    setTimeout(function () {
+        this.messenger.calculateCost(params, function (cost) {
+            this.setCost($target, cost);
+            this.showCost($target);
+        }.bind(this), function (e) {
             console.error(e)
         });
-    }, 200);
+    }.bind(this), 200);
 };
 
 GNewForm.prototype.setCost = function ($target, cost) {
@@ -127,8 +155,8 @@ GNewForm.prototype.waitGeoObjects = function () {
 GNewForm.prototype.findGeoObjects = function (Event) {
     var
         $target = this.getEventTarget(Event),
-        text = this.getFieldValue($target),
-        $autocomplete = $(this.getFieldAttr($target, 'data-autocomplete'));
+        $autocomplete = $(this.getFieldAttr($target, 'data-autocomplete')),
+        text = this.getFieldValue($target);
 
     this.messenger.findGeoObjects({text: text}, function (objects) {
         this.setGeoObjects($autocomplete, objects);
@@ -167,7 +195,7 @@ GNewForm.prototype.geoObjectChoosen = function (Event) {
 
     this.setFieldValue($street, $object.text());
     this.setParam(field, objectAddress.address.street);
-    
+
     this.hideGeoObjects($autocomplete);
 };
 
@@ -177,4 +205,16 @@ GNewForm.prototype.hideGeoObjects = function ($target) {
 
 GNewForm.prototype.defineDirection = function ($target) {
     return $target.closest('.direction').attr('data-direction');
+};
+
+GNewForm.prototype.waitOrderTime = function () {
+
+    this.startListen('change', this.getField('orderTime'), function (Event) {
+        var $orderTimeField = this.getEventTarget(Event);
+        this.setParam('orderTime', this.getFieldValue($orderTimeField));
+    }.bind(this));
+
+    this.startListen('click', '.order-now', function (Event) {
+        this.setParam('orderTime', '');
+    }.bind(this));
 };

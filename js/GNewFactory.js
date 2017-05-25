@@ -7,7 +7,7 @@ GNewFactory.constructor = GNewFactory;
 
 
 GNewFactory.prototype.createMessenger = function() {
-    return new TaxiMasterAdapter();
+    return new GootaxAdapter();
 };
 
 GNewFactory.prototype.createForm = function() {
