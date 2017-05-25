@@ -214,13 +214,15 @@ DemoNewForm.prototype.waitOrderTime = function () {
     this.startListen('click', '.tm_selector label', function (Event) {
         var
             $target = this.getEventTarget(Event),
-            dataAttribute = +this.getFieldAttr($target, 'data-time'),
-            orderTime = '',
-            now = new Date();
+            dataAttribute = parseInt(this.getFieldAttr($target, 'data-time'), 10);
 
         if (!isFinite(dataAttribute)) {
             return;
         }
+
+        var
+            orderTime = '',
+            now = new Date();
 
         if (dataAttribute) {
             now.setMinutes(now.getMinutes() + dataAttribute);
