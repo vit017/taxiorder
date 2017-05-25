@@ -16,11 +16,15 @@ GNewForm.prototype.setFields = function () {
         houseFrom: '#input-from-house',
         housingFrom: '#input-from-housing',
         porchFrom: '#input-from-porch',
+        latFrom: '',
+        lonFrom: '',
         cityTo: '',
         streetTo: '#input-to-street',
         houseTo: '#input-to-house',
         housingTo: '#input-to-housing',
         porchTo: '#input-to-porch',
+        latTo: '',
+        lonTo: '',
         comment: '#input-from-comment',
         phone: '#input-user-phone',
         clientName: '#input-user-name',
@@ -104,6 +108,7 @@ GNewForm.prototype.setTariffs = function ($target, tariffs) {
     });
 
     $target.append($documentFragment);
+    this.setParam('tariffID', tariffs[0].id);
 };
 
 GNewForm.prototype.showTariffs = function ($target) {
@@ -126,7 +131,8 @@ GNewForm.prototype.calculateCost = function (Event) {
         params = this.getParams(),
         $target = $(this.getField('cost'));
 
-    setTimeout(function () {
+    clearTimeout(this.calculateCost.timeout);
+    this.calculateCost.timeout = setTimeout(function () {
         this.messenger.calculateCost(params, function (cost) {
             this.setCost($target, cost);
             this.showCost($target);
@@ -136,8 +142,13 @@ GNewForm.prototype.calculateCost = function (Event) {
     }.bind(this), 200);
 };
 
-GNewForm.prototype.setCost = function ($target, cost) {
-    console.log(cost);
+GNewForm.prototype.setCost = function ($target, result) {
+    $costField = $('.result-cost');
+
+    $costField.find('.title').text('Ехать: ');
+    $costField.find('.dist').text(result.length + ' км');
+    $costField.find('.time').text(result.time + ' мин');
+    $costField.find('.cost').text(result.cost + ' руб.');
 };
 
 GNewForm.prototype.showCost = function ($target) {
@@ -167,10 +178,13 @@ GNewForm.prototype.findGeoObjects = function (Event) {
 
 GNewForm.prototype.setGeoObjects = function ($target, objects) {
     var
-        $fragment = $(document.createDocumentFragment());
+        $fragment = $(document.createDocumentFragment()),
+        objectCoords = [];
 
+    $target.empty();
     objects.forEach(function (object) {
-        $fragment.append("<li class='geoobject' data-res='" + JSON.stringify(object) + "'>" + object.label + "</li>");
+        objectCoords = object.address.location;
+        $fragment.append("<li class='geoobject' data-lat='" + objectCoords[0] + "' data-lon='" + objectCoords[1] + "'>" + object.label + "</li>");
     });
 
     $target.append($fragment);
@@ -187,24 +201,27 @@ GNewForm.prototype.waitGeoObjectClick = function () {
 GNewForm.prototype.geoObjectChoosen = function (Event) {
     var
         $object = this.getEventTarget(Event),
-        objectAddress = JSON.parse(this.getFieldAttr($object, 'data-res')),
+        fieldValue = $object.text(),
         direction = this.defineDirection($object),
         field = 'from' === direction ? 'streetFrom' : 'streetTo',
+        paramLat = 'from' === direction ? 'latFrom' : 'latTo',
+        paramLon = 'from' === direction ? 'lonFrom' : 'lonTo',
+        LatValue = this.getFieldAttr($object, 'data-lat'),
+        LonValue = this.getFieldAttr($object, 'data-lon'),
         $street = $(this.getField(field)),
         $autocomplete = $(this.getFieldAttr($street, 'data-autocomplete'));
 
-    this.setFieldValue($street, $object.text());
-    this.setParam(field, objectAddress.address.street);
+    this.setFieldValue($street, fieldValue);
+
+    this.setParam(field, fieldValue);
+    this.setParam(paramLat, LatValue);
+    this.setParam(paramLon, LonValue);
 
     this.hideGeoObjects($autocomplete);
 };
 
 GNewForm.prototype.hideGeoObjects = function ($target) {
     $target.removeClass('active_autocomplete');
-};
-
-GNewForm.prototype.defineDirection = function ($target) {
-    return $target.closest('.direction').attr('data-direction');
 };
 
 GNewForm.prototype.waitOrderTime = function () {
@@ -217,4 +234,22 @@ GNewForm.prototype.waitOrderTime = function () {
     this.startListen('click', '.order-now', function (Event) {
         this.setParam('orderTime', '');
     }.bind(this));
+};
+
+GNewForm.prototype.afterSetParam = function (key) {
+    var fieldsEvents = this.getFieldsEvents();
+
+    if (!fieldsEvents.hasOwnProperty(key)) {
+        return;
+    }
+
+    var events = fieldsEvents[key];
+
+    events.forEach(function (event) {
+        event();
+    });
+};
+
+GNewForm.prototype.defineDirection = function ($target) {
+    return $target.closest('.direction').attr('data-direction');
 };

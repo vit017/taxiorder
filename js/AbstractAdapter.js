@@ -122,64 +122,47 @@ AbstractAdapter.prototype.wrapTimeout = function (func, functionName, timeoutVal
     this[functionName].timeOut = setTimeout(func, timeoutValue);
 };
 
-AbstractAdapter.prototype.process = function (Request, done) {
-    var that = this,
-        ClientResponse = {};
+AbstractAdapter.prototype.process = function (request, beforeSend) {
+    var
+        that = this,
+        response = new Response();
 
     $.ajax({
-        url: Request.getUrl(),
-        type: Request.getMethod(),
-        data: Request.getParams(),
-        dataType: Request.getDataType()
+        url: request.getUrl(),
+        type: request.getMethod(),
+        data: request.getParams(),
+        dataType: request.getDataType()
     }).done(function (data, textStatus, jqXHR) {
 
-        if (that.isSuccessfulResponse(data)) {
-            ClientResponse = that.createSuccessfulResponse(Request, jqXHR, data)
+        if (TypeHelper.isFunction(beforeSend)) {
+            response.beforeSend = beforeSend.bind(response);
+        }
+
+        if (that.isSuccessfulRequest(data)) {
+            response.createSuccessful(request, jqXHR, data);
         }
         else {
             jqXHR.status = 400;
             jqXHR.statusText = 'Bad Request';
-            ClientResponse = that.createFailResponse(Request, jqXHR);
+            response.createFail(request, jqXHR);
         }
 
-    }).fail(function (jqXHR, textStatus, errorThrown) {
+    }).fail(function (jqXHR) {
 
-        ClientResponse = that.createFailResponse(Request, jqXHR);
+        response.createFail(request, jqXHR);
 
     }).always(function () {
-
-        that.sendResponse(ClientResponse, done);
-
+        response.send();
     });
 };
 
-AbstractAdapter.prototype.createSuccessfulResponse = function (Request, jqXHR, data) {
-    return new Response({
-        status: jqXHR.status,
-        statusText: jqXHR.statusText,
-        data: data.result,
-        success: Request.getSuccessFunction(),
-    })
-};
-
-AbstractAdapter.prototype.createFailResponse = function (Request, jqXHR) {
-    return new Response({
-        status: jqXHR.status,
-        statusText: jqXHR.statusText,
-        data: null,
-        error: Request.getErrorFunction()
-    })
-};
-
-AbstractAdapter.prototype.isSuccessfulResponse = function (data) {
+AbstractAdapter.prototype.isSuccessfulRequest = function (data) {
     return typeof data === 'object' && +data.status > 0;
 };
 
-AbstractAdapter.prototype.sendResponse = function (Response, done) {
+AbstractAdapter.prototype.sendResponse = function (Response) {
     if (Response.isSuccessful()) {
-        if (done && 'function' === typeof done) {
-            done(Response);
-        }
+        Response.beforeSend();
         Response.getSuccessFunction()(Response.getData());
     }
     else {

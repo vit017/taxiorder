@@ -13,7 +13,7 @@ GootaxAdapter.prototype.formatOrderTime = function (OrderTime) {
         }
         return val;
     };
-    
+
     return addZero(OrderTime.getDate()) + '.' + addZero(OrderTime.getMonth() + 1) + '.' + OrderTime.getFullYear() + ' ' + addZero(OrderTime.getHours()) + ':' + addZero(OrderTime.getMinutes()) + ':' + addZero(OrderTime.getSeconds());
 };
 
@@ -101,12 +101,27 @@ GootaxAdapter.prototype.calculateCost = function (clientParams, success, error) 
         }
     });
 
-    this.process(new Request({
-        url: that.url + 'callCost',
-        params: params,
-        success: success,
-        error: error
-    }));
+    var
+        round = Math.round,
+        request = new Request({
+            url: that.url + 'callCost',
+            params: params,
+            success: success,
+            error: error
+        });
+
+
+    this.process(request, function () {
+        /**
+         * @this is Response object
+         */
+        var data = this.getData();
+        this.setData({
+            length: round(data.summary_distance),
+            time: round(data.summary_time),
+            cost: round(data.summary_cost)
+        });
+    });
 };
 
 GootaxAdapter.prototype.createOrder = function (clientParams, success, error) {

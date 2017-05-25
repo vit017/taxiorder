@@ -182,14 +182,14 @@ DemoNewForm.prototype.waitGeoObjectClick = function () {
 DemoNewForm.prototype.geoObjectChoosen = function (Event) {
     var
         $object = this.getEventTarget(Event),
-        objectAddress = JSON.parse(this.getFieldAttr($object, 'data-res')),
+        fieldValue = $object.text(),
         direction = this.defineDirection($object),
         field = 'from' === direction ? 'streetFrom' : 'streetTo',
         $street = $(this.getField(field)),
         $autocomplete = $(this.getFieldAttr($street, 'data-autocomplete'));
 
-    this.setFieldValue($street, $object.text());
-    this.setParam(field, objectAddress.address.street);
+    this.setFieldValue($street, fieldValue);
+    this.setParam(field, fieldValue);
 
     this.hideGeoObjects($autocomplete);
 };
