@@ -26,7 +26,7 @@ TaxiMasterAdapter.prototype.isAuthorizedPhone = function (phone, yes, no) {
     });
 };
 
-TaxiMasterAdapter.prototype.setAuthorizedPhone = function (params) {
+TaxiMasterAdapter.prototype.setAuthorizedPhone = function (params, then) {
     if (!params || !params.phone) {
         return;
     }
@@ -51,6 +51,10 @@ TaxiMasterAdapter.prototype.setAuthorizedPhone = function (params) {
             };
 
         this.setCookie(cookieToken);
+    }
+
+    if (TypeHelper.isFunction(then)) {
+        then();
     }
 };
 

@@ -50,7 +50,7 @@ DemoNewForm.prototype.waitFieldsEvents = function () {
     var
         that = this,
         fields = this.getFields(),
-        addressFields = [
+        fieldsEvents = [
             'streetFrom',
             'houseFrom',
             'porchFrom',
@@ -60,7 +60,7 @@ DemoNewForm.prototype.waitFieldsEvents = function () {
             'comment'
         ];
 
-    addressFields.forEach(function (field) {
+    fieldsEvents.forEach(function (field) {
         if (fields.hasOwnProperty(field)) {
             that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
         }
@@ -69,11 +69,9 @@ DemoNewForm.prototype.waitFieldsEvents = function () {
 
 DemoNewForm.prototype.fieldChanged = function (field, Event) {
     var
-        that = this,
         $target = this.getEventTarget(Event);
 
-    this.setParam(field, that.getFieldValue($target));
-    console.log(this)
+    this.setParam(field, this.getFieldValue($target));
 };
 
 DemoNewForm.prototype.findTariffs = function () {
@@ -118,17 +116,17 @@ DemoNewForm.prototype.waitTariffChange = function () {
 
 DemoNewForm.prototype.calculateCost = function (Event) {
     var
-        that = this,
+        params = this.getParams(),
         $target = $(this.getField('cost'));
 
     setTimeout(function () {
-        that.messenger.calculateCost(that.params, function (cost) {
-            that.setCost($target, cost);
-            that.showCost($target);
-        }.bind(that), function (e) {
+        this.messenger.calculateCost(params, function (cost) {
+            this.setCost($target, cost);
+            this.showCost($target);
+        }.bind(this), function (e) {
             console.error(e)
         });
-    }, 200);
+    }.bind(this), 200);
 };
 
 DemoNewForm.prototype.setCost = function ($target, cost) {
@@ -150,8 +148,8 @@ DemoNewForm.prototype.waitGeoObjects = function () {
 DemoNewForm.prototype.findGeoObjects = function (Event) {
     var
         $target = this.getEventTarget(Event),
-        text = this.getFieldValue($target),
-        $autocomplete = $(this.getFieldAttr($target, 'data-autocomplete'));
+        $autocomplete = $(this.getFieldAttr($target, 'data-autocomplete')),
+        text = this.getFieldValue($target);
 
     this.messenger.findGeoObjects({text: text}, function (objects) {
         this.setGeoObjects($autocomplete, objects);
@@ -274,13 +272,17 @@ DemoNewForm.prototype.tryAuthorize = function (phone, then) {
         throw new Error('Phone is required');
     }
 
-    this.messenger.isAuthorizedPhone(phone, then, function () {
+    this.isAuthorizedPhone(phone, then, function () {
         this.sendSms(phone, function () {
             go_to_step(3);
             this.waitConfirmSms(then);
             this.waitSendSmsAgain();
-        });
+        }.bind(this));
     }.bind(this));
+};
+
+DemoNewForm.prototype.isAuthorizedPhone = function (phone, yes, no) {
+    this.messenger.isAuthorizedPhone(phone, yes, no);
 };
 
 DemoNewForm.prototype.sendSms = function (phone, then) {
@@ -289,12 +291,10 @@ DemoNewForm.prototype.sendSms = function (phone, then) {
             this.showPopup(sendResult.text);
             return;
         }
-        
-        if (!then || typeof then !== 'function') {
-            return;
-        }
 
-        then();
+        if (TypeHelper.isFunction(then)) {
+            then();
+        }
     }.bind(this));
 };
 
@@ -340,8 +340,8 @@ DemoNewForm.prototype.confirmSms = function (phone, smsCode, then) {
             this.showPopup(confirmResult.text);
             return;
         }
-        this.messenger.setAuthorizedPhone(confirmResult);
-        then();
+
+        this.messenger.setAuthorizedPhone(confirmResult, then);
     }.bind(this));
 };
 
@@ -373,7 +373,7 @@ DemoNewForm.prototype.startOrderInfo = function (orderID) {
 
     this.startOrderInfo.interval = setInterval(function () {
         this.messenger.getOrderInfo(orderID, this.showOrderInfo.bind(this));
-    }.bind(this), 1000);
+    }.bind(this), 4000);
 };
 
 DemoNewForm.prototype.showOrderInfo = function (orderInfo) {
