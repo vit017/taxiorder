@@ -124,6 +124,74 @@ GootaxAdapter.prototype.calculateCost = function (clientParams, success, error) 
     });
 };
 
+GootaxAdapter.prototype.validateParams = function (clientParams, success, error) {
+    var
+        that = this,
+        paramsToValidate = {},
+        params = {
+            fromCity: clientParams.cityFrom,
+            fromStreet: clientParams.streetFrom,
+            fromHouse: clientParams.houseFrom,
+            fromHousing: clientParams.housingFrom,
+            fromBuilding: clientParams.buildingFrom,
+            fromPorch: clientParams.porchFrom,
+            fromLat: clientParams.latFrom,
+            fromLon: clientParams.lonFrom,
+            toCity: clientParams.toCity,
+            toStreet: clientParams.streetTo,
+            toHouse: clientParams.houseTo,
+            toHousing: clientParams.housingTo,
+            toBuilding: clientParams.buildingTo,
+            toPorch: clientParams.porchTo,
+            toLat: clientParams.latTo,
+            toLon: clientParams.lonTo,
+            clientName: clientParams.clientName,
+            phone: clientParams.phone,
+            priorTime: clientParams.orderTime,
+            customCarId: clientParams.carID,
+            customCar: clientParams.car,
+            carType: clientParams.carType,
+            carGroupId: clientParams.carGroupID,
+            tariffGroupId: clientParams.tariffID,
+            comment: clientParams.comment
+        };
+
+    var empty = this.createEmptyParam();
+    Object.keys(params).forEach(function (key) {
+        if (!(params[key])) {
+            params[key] = empty;
+        }
+        paramsToValidate[key] = params[key];
+    });
+
+    params = {
+        command: 'createOrder',
+        paramsToValidate: paramsToValidate
+    };
+
+    this.process(new Request({
+        url: that.url + 'validateCommand',
+        params: params,
+        success: success,
+        error: error
+    }), function () {
+        var data = this.getData();
+        if (data.hasErrors) {
+            this.setData({
+                result: false,
+                errors: data.errorsInfo.errors,
+                html: data.errorsInfo.summaryHtml,
+                text: data.errorsInfo.summaryText
+            });
+        }
+        else {
+            this.setData({
+                result: true
+            });
+        }
+    });
+};
+
 GootaxAdapter.prototype.createOrder = function (clientParams, success, error) {
     var that = this,
         params = {

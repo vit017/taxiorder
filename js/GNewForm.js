@@ -266,11 +266,27 @@ GNewForm.prototype.waitCreateOrder = function () {
             return;
         }
 
-        this.tryAuthorize(phone, function () {
-            this.createOrder();
+        var
+            $validateResultField = $('#result-message');
+
+        $validateResultField.empty();
+        this.validateParams(function (validateResult) {
+            if (!validateResult.result) {
+                $validateResultField.html(validateResult.html);
+                return;
+            }
+
+            this.tryAuthorize(phone, function () {
+                this.createOrder();
+            }.bind(this));
+
         }.bind(this));
 
     }.bind(this));
+};
+
+GNewForm.prototype.validateParams = function (then) {
+    this.messenger.validateParams(this.getParams(), then);
 };
 
 GNewForm.prototype.tryAuthorize = function (phone, then) {
