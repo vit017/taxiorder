@@ -2,10 +2,6 @@ function GNewFactory() {
 
 }
 
-GNewFactory.prototype = Object.create(AbstractTaxiOrderFactory.prototype);
-GNewFactory.constructor = GNewFactory;
-
-
 GNewFactory.prototype.createMessenger = function() {
     return new GootaxAdapter();
 };

@@ -2,7 +2,7 @@ function TaxiMasterAdapter() {
     this.url = '/api_integration/index_client.php?command=';
     this.authorizePhones = {};
 }
-TaxiMasterAdapter.prototype = Object.create(AbstractAdapter.prototype);
+TaxiMasterAdapter.prototype = Object.create(StandartAdapter.prototype);
 TaxiMasterAdapter.constructor = TaxiMasterAdapter;
 
 TaxiMasterAdapter.prototype.formatOrderTime = function (OrderTime) {
