@@ -6,12 +6,7 @@ AbstractForm.prototype.setMessenger = function (messenger) {
     this.messenger = messenger;
 };
 
-AbstractForm.prototype.getEventID = function (Event) {
-    return Event.handleObj.guid;
-};
-
 AbstractForm.prototype.startListen = function (eventType, selector, handler) {
-    this.stopListen(eventType, selector, handler);
     $(selector).on(eventType, handler);
 };
 

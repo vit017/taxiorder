@@ -185,6 +185,10 @@ GNewForm.prototype.getSendSmsAgainSelector = function () {
     return '.send_again';
 };
 
+GNewForm.prototype.getCancelOrderSelector = function () {
+    return '';
+};
+
 GNewForm.prototype.showOrderInfoInit = function (OrderInfo) {
     var id = +OrderInfo.id;
     this.outOrderInfoField(id > 0, '#order_id', '', id);

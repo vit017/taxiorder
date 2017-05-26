@@ -179,8 +179,8 @@ StandartForm.prototype.tryCreateOrder = function (Event) {
 };
 
 StandartForm.prototype.checkOrderExists = function () {
-    var cookieOrderID = this.messenger.getCookieForOrder();
-    var orderID = +this.messenger.getCookie(cookieOrderID);
+    var cookieOrderName = this.messenger.getCookieForOrder();
+    var orderID = +this.messenger.getCookie(cookieOrderName);
 
     if (orderID) {
         this.restoreOrder(orderID);
@@ -191,19 +191,20 @@ StandartForm.prototype.restoreOrder = function (orderID) {
     this.initOrderInfoProcessing(orderID);
 };
 
-StandartForm.prototype.successOrderCreate = function (orderID) {
-    this.messenger.setCookie({
-        name: 'api_order_id',
-        value: orderID
-    });
-
-    this.initOrderInfoProcessing(orderID);
-};
-
 StandartForm.prototype.initOrderInfoProcessing = function (orderID) {
     this.startOrderInfo(orderID);
     this.toggleOrderInfoStep();
     this.waitCancelOrder(orderID);
+};
+
+StandartForm.prototype.successOrderCreate = function (orderID) {
+    var cookieOrderName = this.messenger.getCookieForOrder();
+    this.messenger.setCookie({
+        name: cookieOrderName,
+        value: orderID
+    });
+
+    this.initOrderInfoProcessing(orderID);
 };
 
 StandartForm.prototype.waitCancelOrder = function (orderID) {
@@ -358,35 +359,30 @@ StandartForm.prototype.startOrderInfo = function (orderID) {
         throw new Error('orderID is required');
     }
 
-    var that = this;
+    var that = this,
+        messenger = that.messenger;
 
-    that.messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
+    messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
     that.startOrderInfo.interval = setInterval(function () {
-        that.messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
+        messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
     }, 4000);
 };
 
 StandartForm.prototype.showOrderInfo = function (OrderInfo) {
-    var that = this;
+    var that = this,
+        messenger = this.messenger;
 
-    if (that.messenger.orderIsNew(OrderInfo)) {
+    if (messenger.orderIsNew(OrderInfo)) {
         that.showOrderInfoInit(OrderInfo);
     }
 
-    else if (that.messenger.orderIsDone(OrderInfo)) {
+    else if (messenger.orderIsDone(OrderInfo)) {
         that.showOrderInfoDone(OrderInfo);
         clearInterval(that.startOrderInfo.interval);
+        messenger.removeCookie(messenger.getCookieForOrder());
     }
 
     that.orderIsInProcess(OrderInfo);
-};
-
-StandartForm.prototype.orderIsNew = function (OrderInfo) {
-    return 'new' === OrderInfo.status;
-};
-
-StandartForm.prototype.orderIsDone = function (OrderInfo) {
-    return 'completed' === OrderInfo.status || 'rejected' === OrderInfo.status;
 };
 
 StandartForm.prototype.outOrderInfoField = function (condition, fieldSelector, captionSelector, data) {

@@ -190,8 +190,8 @@ DemoNewForm.prototype.getCancelOrderSelector = function () {
     return '.reject_order';
 };
 
-DemoNewForm.prototype.showOrderInfoInit = function(OrderInfo) {
-    $('.order_label').html('Заказ #' + OrderInfo.id + ' создан');
+DemoNewForm.prototype.showOrderInfoInit = function (OrderInfo) {
+    $('#order_id').html(OrderInfo.id);
 };
 
 DemoNewForm.prototype.orderIsInProcess = function (OrderInfo) {
@@ -202,6 +202,6 @@ DemoNewForm.prototype.orderIsInProcess = function (OrderInfo) {
     this.outOrderInfoField(OrderInfo.driverFio, '.driver_fio', '.driver_fio-caption');
 };
 
-DemoNewForm.prototype.showOrderInfoDone = function(OrderInfo) {
+DemoNewForm.prototype.showOrderInfoDone = function (OrderInfo) {
     $(this.getCancelOrderSelector()).remove();
 };
