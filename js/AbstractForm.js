@@ -48,12 +48,7 @@ AbstractForm.prototype.getFieldAttr = function (selector, attribute) {
 };
 
 AbstractForm.prototype.getParam = function (key) {
-    var fields = this.getFields(),
-        params = this.getParams();
-
-    if (!fields.hasOwnProperty(key)) {
-        return;
-    }
+    var params = this.getParams();
 
     if (!params.hasOwnProperty(key)) {
         return;
@@ -63,12 +58,6 @@ AbstractForm.prototype.getParam = function (key) {
 };
 
 AbstractForm.prototype.setParam = function (key, value) {
-    var fields = this.getFields();
-
-    if (!fields.hasOwnProperty(key)) {
-        return;
-    }
-
     this.params[key] = value;
     this.afterSetParam(key);
 };
