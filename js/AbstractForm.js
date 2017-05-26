@@ -31,8 +31,6 @@ AbstractForm.prototype.getField = function (key) {
     if (fields.hasOwnProperty(key)) {
         return fields[key];
     }
-
-    return null;
 };
 
 AbstractForm.prototype.setFieldValue = function (selector, value) {
