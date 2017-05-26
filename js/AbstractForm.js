@@ -7,7 +7,7 @@ AbstractForm.prototype.setMessenger = function (messenger) {
 };
 
 AbstractForm.prototype.startListen = function (eventType, selector, handler) {
-    console.dir(handler)
+    console.log(handler)
     $(selector).off(eventType, handler);
     $(selector).on(eventType, handler);
 };
