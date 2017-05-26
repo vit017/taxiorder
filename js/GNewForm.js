@@ -197,7 +197,7 @@ GNewForm.prototype.showOrderInfoInit = function (OrderInfo) {
 GNewForm.prototype.orderIsInProcess = function (OrderInfo) {
     var isShowCost = OrderInfo.hasOwnProperty('cost') && +OrderInfo.cost;
     this.outOrderInfoField(OrderInfo.statusLabel, '#order_status', '.order_status-caption');
-    this.outOrderInfoField(isShowCost, '#order_price', '.order_cost-caption', +OrderInfo.cost + ' ' + OrderInfo.costCurrency);
+    this.outOrderInfoField(isShowCost, '#order_price', '.order_cost-caption', parseInt(OrderInfo.cost, 10) + ' ' + OrderInfo.costCurrency);
     this.outOrderInfoField(OrderInfo.carDescription, '#order_car', '.car_description-caption');
     this.outOrderInfoField(OrderInfo.carTime, '#order_car_time', '.car_time-caption');
     this.outOrderInfoField(OrderInfo.driverFio, '#order_driver', '.driver_fio-caption');
