@@ -1,7 +1,7 @@
 function DemoNewForm() {
     this.params = {};
     this.messenger = {};
-    this.listeners = {};
+    this.events = {};
 
     this.setFields();
     this.setParamsEvents();

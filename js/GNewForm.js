@@ -1,7 +1,7 @@
 function GNewForm() {
     this.params = {};
     this.messenger = {};
-    this.events = [];
+    this.events = {};
 
     this.setFields();
     this.setParamsEvents();
