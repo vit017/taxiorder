@@ -150,7 +150,11 @@ StandartForm.prototype.waitCreateOrder = function () {
 
 StandartForm.prototype.tryCreateOrder = function (Event) {
     var that = this;
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> bbc15e01bc9a880a1468d34a0a9d018927382772
     that.preventEvent(Event);
 
     var $phone = $(that.getField('phone')),
@@ -181,11 +185,16 @@ StandartForm.prototype.validateParams = function (then) {
     this.messenger.validateParams(this.getParams(), then);
 };
 
+<<<<<<< HEAD
 StandartForm.prototype.tryAuthorize = function (phone, ifAuthorized) {
+=======
+StandartForm.prototype.tryAuthorize = function (phone, then) {
+>>>>>>> bbc15e01bc9a880a1468d34a0a9d018927382772
     if (!phone.length) {
         throw new Error('Phone is required');
     }
 
+<<<<<<< HEAD
     var that = this,
         ifNotAuthorized = function () {
             that.sendSms(phone, function () {
@@ -196,6 +205,16 @@ StandartForm.prototype.tryAuthorize = function (phone, ifAuthorized) {
         };
 
     that.isAuthorizedPhone(phone, ifAuthorized, ifNotAuthorized);
+=======
+    var that = this;
+    that.isAuthorizedPhone(phone, then, function () {
+        that.sendSms(phone, function () {
+            that.toggleAuthorizationStep();
+            that.waitConfirmSms(then);
+            that.waitSendSmsAgain();
+        });
+    });
+>>>>>>> bbc15e01bc9a880a1468d34a0a9d018927382772
 };
 
 StandartForm.prototype.isAuthorizedPhone = function (phone, yes, no) {
