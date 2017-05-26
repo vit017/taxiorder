@@ -113,7 +113,9 @@ DemoNewForm.prototype.hideGeoObjects = function ($target) {
     $target.parents('.direction_input').find('.ds_2').show();
 };
 
-DemoNewForm.prototype.setCost = function ($target, cost) {
+DemoNewForm.prototype.setCost = function (cost) {
+    var $costField = $(this.getField('cost'));
+    console.log($costField);
     console.log(cost);
 };
 

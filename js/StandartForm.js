@@ -129,14 +129,13 @@ StandartForm.prototype.afterSetParam = function (key) {
 
 StandartForm.prototype.calculateCost = function () {
     var that = this,
-        params = that.getParams(),
-        $target = $(that.getField('cost'));
+        params = that.getParams();
 
     clearTimeout(that.calculateCost.timeout);
     that.calculateCost.timeout = setTimeout(function () {
         that.messenger.calculateCost(params, function (cost) {
-            that.setCost($target, cost);
-            that.showCost($target);
+            that.setCost(cost);
+            that.showCost();
         });
     }, 200);
 };

@@ -128,8 +128,8 @@ GNewForm.prototype.hideGeoObjects = function ($target) {
     $target.removeClass('active_autocomplete');
 };
 
-GNewForm.prototype.setCost = function ($target, result) {
-    $costField = $('.result-cost');
+GNewForm.prototype.setCost = function (result) {
+    var $costField = $('.result-cost');
 
     $costField.find('.title').text('Ехать: ');
     $costField.find('.dist').text(result.length + ' км');
