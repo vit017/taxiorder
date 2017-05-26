@@ -184,6 +184,10 @@ DemoNewForm.prototype.getSendSmsAgainSelector = function () {
     return '.send_again';
 };
 
+DemoNewForm.prototype.getCancelOrderSelector = function () {
+    return '.reject_order';
+};
+
 DemoNewForm.prototype.showOrderInfo = function (orderInfo) {
     console.log(orderInfo)
     //carId

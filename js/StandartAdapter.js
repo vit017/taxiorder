@@ -164,7 +164,9 @@ StandartAdapter.prototype.confirmSms = function (clientParams, success, error) {
         params: params,
         success: success,
         error: error
-    }));
+    }), function () {
+        that.setAuthorizedPhone(this.getData())
+    });
 };
 
 StandartAdapter.prototype.calculateCost = function (clientParams, success, error) {
@@ -370,7 +372,8 @@ StandartAdapter.prototype.getOrderInfo = function (orderID, success, error) {
 
 StandartAdapter.prototype.process = function (request, beforeSendResponse) {
     var that = this,
-        response = new Response();
+        response = new Response(),
+        xhr = {};
 
     $.ajax({
         url: request.getUrl(),
@@ -378,10 +381,10 @@ StandartAdapter.prototype.process = function (request, beforeSendResponse) {
         data: request.getParams(),
         dataType: request.getDataType()
     }).done(function (data, textStatus, jqXHR) {
-
+        xhr = jqXHR;
         if (!that.isSuccessfulRequest(data)) {
             jqXHR.status = 400;
-            jqXHR.statusText = 'Bad Request';
+            jqXHR.statusText = data ? data.errorMessage : 'Bad Request';
             response.createFail(request, jqXHR);
             return;
         }
@@ -393,7 +396,7 @@ StandartAdapter.prototype.process = function (request, beforeSendResponse) {
         response.createSuccessful(request, jqXHR, data);
 
     }).fail(function (jqXHR) {
-
+        xhr = jqXHR;
         response.createFail(request, jqXHR);
 
     }).always(function () {

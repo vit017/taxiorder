@@ -11,6 +11,7 @@ AbstractForm.prototype.getEventID = function (Event) {
 };
 
 AbstractForm.prototype.startListen = function (eventType, selector, handler) {
+    this.stopListen(eventType, selector, handler);
     $(selector).on(eventType, handler);
 };
 
@@ -82,4 +83,13 @@ AbstractForm.prototype.afterSetParam = function (key, value) {
 
 AbstractForm.prototype.showPopup = function (content) {
     alert(content);
+};
+
+AbstractForm.prototype.showConfirm = function (content, yes, no) {
+    yes = TypeHelper.isFunction(yes) ? yes : function () {
+    };
+    no = TypeHelper.isFunction(no) ? no : function () {
+    };
+
+    confirm(content) ? yes() : no();
 };

@@ -170,30 +170,81 @@ StandartForm.prototype.tryCreateOrder = function (Event) {
             return;
         }
 
-        that.tryAuthorize(phone, function () {
-            that.createOrder();
-        });
+        var successOrderCreate = that.successOrderCreate.bind(that),
+            failOrderCreate = that.failOrderCreate.bind(that),
+            ifAuthorize = that.createOrder.bind(that, successOrderCreate, failOrderCreate);
 
+
+        that.isAuthorizedPhone(phone, ifAuthorize, that.tryAuthorize.bind(that, ifAuthorize));
     });
+};
+
+StandartForm.prototype.successOrderCreate = function (orderID) {
+    this.startOrderInfo(orderID);
+    this.toggleOrderInfoStep();
+    this.waitCancelOrder(orderID);
+};
+
+StandartForm.prototype.waitCancelOrder = function (orderID) {
+    var that = this,
+        afterCancelOrder = that.afterCancelOrder.bind(that);
+
+    that.startListen('click', that.getCancelOrderSelector(), function (Event) {
+        that.preventEvent(Event);
+        that.showConfirm('Отменить заказ?', that.rejectOrder.bind(that, orderID, afterCancelOrder));
+    });
+};
+
+StandartForm.prototype.afterCancelOrder = function (result) {
+    this.showPopup(result);
+};
+
+StandartForm.prototype.failOrderCreate = function (error) {
+    this.showPopup(error.statusText);
 };
 
 StandartForm.prototype.validateParams = function (then) {
     this.messenger.validateParams(this.getParams(), then);
 };
 
-StandartForm.prototype.tryAuthorize = function (phone, then) {
+StandartForm.prototype.tryAuthorize = function (then) {
+    var that = this,
+        phone = that.getParam('phone');
+
     if (!phone.length) {
         throw new Error('Phone is required');
     }
 
-    var that = this;
-    that.isAuthorizedPhone(phone, then, function () {
-        that.sendSms(phone, function () {
-            that.toggleAuthorizationStep();
-            that.waitConfirmSms(then);
+    that.trySmsAuthorize(then);
+};
+
+StandartForm.prototype.trySmsAuthorize = function (then) {
+    var that = this,
+        phone = that.getParam('phone'),
+        isFirstCall = that.isFirstFunctionCall(that.trySmsAuthorize);
+
+    that.sendSms(phone, function () {
+        that.toggleAuthorizationStep();
+        if (isFirstCall) {
+            that.setFunctionCalled(that.trySmsAuthorize);
             that.waitSendSmsAgain();
-        });
+            that.waitConfirmSms(then);
+        }
     });
+};
+
+StandartForm.prototype.getFunctionCounter = function () {
+    return 'countCalls';
+};
+
+StandartForm.prototype.isFirstFunctionCall = function (func) {
+    var counter = this.getFunctionCounter();
+    return !func.hasOwnProperty(counter);
+};
+
+StandartForm.prototype.setFunctionCalled = function (func, countCalls) {
+    var counter = this.getFunctionCounter();
+    return func[counter] = countCalls || 1;
 };
 
 StandartForm.prototype.isAuthorizedPhone = function (phone, yes, no) {
@@ -204,10 +255,7 @@ StandartForm.prototype.sendSms = function (phone, then) {
     var that = this;
 
     that.messenger.sendSms(phone, function (sendResult) {
-        if (!sendResult.success) {
-            that.showPopup(sendResult.text);
-            return;
-        }
+        that.showPopup(sendResult.text);
 
         if (TypeHelper.isFunction(then)) {
             then();
@@ -243,7 +291,9 @@ StandartForm.prototype.confirmSms = function (then) {
             return;
         }
 
-        that.messenger.setAuthorizedPhone(confirmResult, then);
+        if (TypeHelper.isFunction(then)) {
+            then();
+        }
     });
 };
 
@@ -263,26 +313,21 @@ StandartForm.prototype.waitSendSmsAgain = function () {
     });
 };
 
-StandartForm.prototype.createOrder = function () {
+StandartForm.prototype.createOrder = function (success, error) {
     var that = this,
         params = that.getParams();
 
-    that.messenger.createOrder(params, function (orderResult) {
-        var orderID = +orderResult;
-
-        if (orderID > 0) {
-            that.startOrderInfo(orderID);
-            that.toggleOrderInfoStep();
-        }
-    });
+    that.messenger.createOrder(params, success, error);
 };
 
-StandartForm.prototype.rejectOrder = function (orderID) {
+StandartForm.prototype.rejectOrder = function (orderID, then) {
     var that = this;
 
     that.messenger.rejectOrder(orderID, function (rejected) {
 
-        that.showPopup(rejected);
+        if (TypeHelper.isFunction(then)) {
+            then(rejected);
+        }
 
     });
 };
