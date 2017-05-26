@@ -338,13 +338,43 @@ StandartForm.prototype.startOrderInfo = function (orderID) {
 
     var that = this;
 
+    that.messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
     that.startOrderInfo.interval = setInterval(function () {
         that.messenger.getOrderInfo(orderID, that.showOrderInfo.bind(that));
     }, 4000);
 };
 
-StandartForm.prototype.showOrderInfo = function (orderInfo) {
-    console.log(orderInfo)
-    //carId
-    //statusLabel
+StandartForm.prototype.showOrderInfo = function (OrderInfo) {
+    var that = this;
+
+    if (that.messenger.orderIsNew(OrderInfo)) {
+        that.showOrderInfoInit(OrderInfo);
+    }
+
+    else if (that.messenger.orderIsDone(OrderInfo)) {
+        that.showOrderInfoDone(OrderInfo);
+        clearInterval(that.startOrderInfo.interval);
+    }
+
+    that.orderIsEveryStep(OrderInfo);
+};
+
+StandartForm.prototype.orderIsNew = function (OrderInfo) {
+    return 'new' === OrderInfo.status;
+};
+
+StandartForm.prototype.orderIsDone = function (OrderInfo) {
+    return 'completed' === OrderInfo.status || 'rejected' === OrderInfo.status;
+};
+
+StandartForm.prototype.outOrderInfoField = function (data, fieldSelector, captionSelector) {
+    if (data) {
+        $(fieldSelector).html(data);
+        $(fieldSelector).show();
+        $(captionSelector).show();
+    }
+    else {
+        $(fieldSelector).hide();
+        $(captionSelector).hide();
+    }
 };

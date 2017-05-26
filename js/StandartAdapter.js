@@ -73,6 +73,10 @@ StandartAdapter.prototype.createEmptyParam = function () {
     return '';
 };
 
+StandartAdapter.prototype.isEmptyParam = function (value) {
+    return value === this.createEmptyParam();
+};
+
 StandartAdapter.prototype.findTariffs = function (success, error) {
     var that = this;
 
@@ -199,12 +203,23 @@ StandartAdapter.prototype.calculateCost = function (clientParams, success, error
             comment: clientParams.comment
         };
 
-    var empty = this.createEmptyParam();
+    var empty = that.createEmptyParam(),
+        paramIsEmpty = that.isEmptyParam.bind(that);
+
     Object.keys(params).forEach(function (key) {
         if (!(params[key])) {
             params[key] = empty;
         }
     });
+
+    
+    if (
+           paramIsEmpty(params.fromStreet)
+        || paramIsEmpty(params.toStreet)
+        || paramIsEmpty(params.tariffGroupId)
+    ) {
+        return;
+    }
 
     var
         round = Math.round,
@@ -416,4 +431,16 @@ StandartAdapter.prototype.setCookie = function (params) {
 
 StandartAdapter.prototype.getCookie = function (name) {
     return Cookies.get(name);
+};
+
+StandartAdapter.prototype.orderIsNew = function (OrderInfo) {
+    return 'new' === OrderInfo.status;
+};
+
+StandartAdapter.prototype.orderInProcess = function (OrderInfo) {
+    return !this.orderIsNew(OrderInfo) && !this.orderIsDone(OrderInfo);
+};
+
+StandartAdapter.prototype.orderIsDone = function (OrderInfo) {
+    return 'completed' === OrderInfo.status || 'rejected' === OrderInfo.status;
 };
