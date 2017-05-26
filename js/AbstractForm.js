@@ -48,31 +48,36 @@ AbstractForm.prototype.getFieldAttr = function (selector, attribute) {
 };
 
 AbstractForm.prototype.getParam = function (key) {
-    if (!this.fields.hasOwnProperty(key)) {
+    var fields = this.getFields(),
+        params = this.getParams();
+
+    if (!fields.hasOwnProperty(key)) {
         return;
     }
 
-    if (!this.params.hasOwnProperty(key)) {
+    if (!params.hasOwnProperty(key)) {
         return;
     }
 
-    return this.params[key];
+    return params[key];
 };
 
 AbstractForm.prototype.setParam = function (key, value) {
-    if (!this.fields.hasOwnProperty(key)) {
+    var fields = this.getFields();
+
+    if (!fields.hasOwnProperty(key)) {
         return;
     }
 
     this.params[key] = value;
-    this.afterSetParam(key, value);
+    this.afterSetParam(key);
 };
 
 AbstractForm.prototype.getParams = function () {
     return this.params || {};
 };
 
-AbstractForm.prototype.afterSetParam = function (key, value) {
+AbstractForm.prototype.afterSetParam = function (key) {
 
 };
 
