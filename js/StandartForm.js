@@ -178,7 +178,29 @@ StandartForm.prototype.tryCreateOrder = function (Event) {
     });
 };
 
+StandartForm.prototype.checkOrderExists = function () {
+    var cookieOrderID = this.messenger.getCookieForOrder();
+    var orderID = +this.messenger.getCookie(cookieOrderID);
+
+    if (orderID) {
+        this.restoreOrder(orderID);
+    }
+};
+
+StandartForm.prototype.restoreOrder = function (orderID) {
+    this.initOrderInfoProcessing(orderID);
+};
+
 StandartForm.prototype.successOrderCreate = function (orderID) {
+    this.messenger.setCookie({
+        name: 'api_order_id',
+        value: orderID
+    });
+
+    this.initOrderInfoProcessing(orderID);
+};
+
+StandartForm.prototype.initOrderInfoProcessing = function (orderID) {
     this.startOrderInfo(orderID);
     this.toggleOrderInfoStep();
     this.waitCancelOrder(orderID);

@@ -212,9 +212,9 @@ StandartAdapter.prototype.calculateCost = function (clientParams, success, error
         }
     });
 
-    
+
     if (
-           paramIsEmpty(params.fromStreet)
+        paramIsEmpty(params.fromStreet)
         || paramIsEmpty(params.toStreet)
         || paramIsEmpty(params.tariffGroupId)
     ) {
@@ -429,6 +429,10 @@ StandartAdapter.prototype.setCookie = function (params) {
     Cookies.set(params.name, params.value, params.attributes);
 };
 
+StandartAdapter.prototype.removeCookie = function (name) {
+    Cookies.remove(name);
+};
+
 StandartAdapter.prototype.getCookie = function (name) {
     return Cookies.get(name);
 };
@@ -443,4 +447,8 @@ StandartAdapter.prototype.orderInProcess = function (OrderInfo) {
 
 StandartAdapter.prototype.orderIsDone = function (OrderInfo) {
     return 'completed' === OrderInfo.status || 'rejected' === OrderInfo.status;
+};
+
+StandartAdapter.prototype.getCookieForOrder = function () {
+    return 'api_order_id';
 };
