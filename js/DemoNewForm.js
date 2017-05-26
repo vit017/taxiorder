@@ -62,6 +62,7 @@ DemoNewForm.prototype.getTariffTarget = function () {
 
 DemoNewForm.prototype.createTariffTemplate = function (tariff) {
     var option = document.createElement('option');
+
     option.value = tariff.id;
     option.text = tariff.label;
 
@@ -73,7 +74,8 @@ DemoNewForm.prototype.showTariffs = function () {
 };
 
 DemoNewForm.prototype.createGeoObjectTemplate = function (object) {
-    var li = document.createElement('li'),
+    var
+        li = document.createElement('li'),
         text = object.label;
 
     li.className = 'geoobject';
@@ -102,7 +104,9 @@ DemoNewForm.prototype.geoObjectChoosen = function (Event) {
         $street = $(this.getField(field)),
         $autocomplete = $(this.getFieldAttr($street, 'data-autocomplete'));
 
+
     this.setFieldValue($street, fieldValue);
+
     this.setParam(field, fieldValue);
 
     this.hideGeoObjects($autocomplete);
@@ -114,9 +118,7 @@ DemoNewForm.prototype.hideGeoObjects = function ($target) {
 };
 
 DemoNewForm.prototype.setCost = function (cost) {
-    var $costField = $(this.getField('cost'));
-    console.log($costField);
-    console.log(cost);
+
 };
 
 DemoNewForm.prototype.showCost = function ($target) {
@@ -127,15 +129,18 @@ DemoNewForm.prototype.waitOrderTime = function () {
     var that = this;
 
     that.startListen('click', '.time_selector button', function (Event) {
-        var $target = that.getEventTarget(Event),
-            orderTime = $target.parent().find('option:selected').html() + ' ' + $target.parent().find('input[type="time"]').val() + ':00';
+        var
+            $targetTime = that.getEventTarget(Event),
+            orderTime = $targetTime.parent().find('option:selected').html() + ' ' + $targetTime.parent().find('input[type="time"]').val() + ':00';
 
         that.setParam('orderTime', orderTime);
     });
 
     that.startListen('click', '.tm_selector label', function (Event) {
-        var $target = that.getEventTarget(Event),
-            dataAttribute = parseInt(that.getFieldAttr($target, 'data-time'), 10);
+        var
+            $targetTime = that.getEventTarget(Event),
+            dataAttribute = parseInt(that.getFieldAttr($targetTime, 'data-time'), 10);
+
 
         if (!isFinite(dataAttribute)) {
             return;
@@ -155,7 +160,7 @@ DemoNewForm.prototype.waitOrderTime = function () {
 };
 
 DemoNewForm.prototype.defineDirection = function ($target) {
-    return $target.closest('.direction_input').attr('data-direction');
+    return this.getFieldAttr($target.closest('.direction_input'), 'data-direction');
 };
 
 DemoNewForm.prototype.getValidateResultsField = function () {
@@ -191,11 +196,14 @@ DemoNewForm.prototype.getCancelOrderSelector = function () {
 };
 
 DemoNewForm.prototype.showOrderInfoInit = function (OrderInfo) {
-    $('#order_id').html(OrderInfo.id);
+    var id = +OrderInfo.id;
+
+    this.outOrderInfoField(id > 0, '#order_id', '', id);
 };
 
 DemoNewForm.prototype.orderIsInProcess = function (OrderInfo) {
     var isShowCost = OrderInfo.hasOwnProperty('cost') && +OrderInfo.cost;
+
     this.outOrderInfoField(OrderInfo.statusLabel, '.order_status', '.order_status-caption');
     this.outOrderInfoField(isShowCost, '.order_cost', '.order_cost-caption', parseInt(OrderInfo.cost, 10) + ' ' + OrderInfo.costCurrency);
     this.outOrderInfoField(OrderInfo.carDescription, '.car_description', '.car_description-caption');
@@ -203,6 +211,6 @@ DemoNewForm.prototype.orderIsInProcess = function (OrderInfo) {
     this.outOrderInfoField(OrderInfo.driverFio, '.driver_fio', '.driver_fio-caption');
 };
 
-DemoNewForm.prototype.showOrderInfoDone = function (OrderInfo) {
+DemoNewForm.prototype.showOrderInfoDone = function () {
     $(this.getCancelOrderSelector()).remove();
 };
