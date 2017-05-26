@@ -72,8 +72,10 @@ GNewForm.prototype.getTariffTarget = function () {
 
 GNewForm.prototype.createTariffTemplate = function (tariff) {
     var option = document.createElement('option');
+
     option.value = tariff.id;
     option.text = tariff.label;
+
     return option;
 };
 
@@ -83,7 +85,8 @@ GNewForm.prototype.showTariffs = function () {
 };
 
 GNewForm.prototype.createGeoObjectTemplate = function (object) {
-    var objectCoords = object.address.location,
+    var
+        objectCoords = object.address.location,
         li = document.createElement('li');
 
     li.className = 'geoobject';
@@ -115,6 +118,7 @@ GNewForm.prototype.geoObjectChoosen = function (Event) {
         $street = $(this.getField(field)),
         $autocomplete = $(this.getFieldAttr($street, 'data-autocomplete'));
 
+
     this.setFieldValue($street, fieldValue);
 
     this.setParam(field, fieldValue);
@@ -142,15 +146,17 @@ GNewForm.prototype.showCost = function ($target) {
 };
 
 GNewForm.prototype.waitOrderTime = function () {
+    var that = this;
 
-    this.startListen('change', this.getField('orderTime'), function (Event) {
-        var $orderTimeField = this.getEventTarget(Event);
-        this.setParam('orderTime', this.getFieldValue($orderTimeField));
-    }.bind(this));
+    that.startListen('change', that.getField('orderTime'), function (Event) {
+        var $orderTimeField = that.getEventTarget(Event);
 
-    this.startListen('click', '.order-now', function () {
-        this.setParam('orderTime', '');
-    }.bind(this));
+        that.setParam('orderTime', that.getFieldValue($orderTimeField));
+    });
+
+    that.startListen('click', '.order-now', function () {
+        that.setParam('orderTime', '');
+    });
 };
 
 GNewForm.prototype.defineDirection = function ($target) {
@@ -191,11 +197,13 @@ GNewForm.prototype.getCancelOrderSelector = function () {
 
 GNewForm.prototype.showOrderInfoInit = function (OrderInfo) {
     var id = +OrderInfo.id;
+
     this.outOrderInfoField(id > 0, '#order_id', '', id);
 };
 
 GNewForm.prototype.orderIsInProcess = function (OrderInfo) {
     var isShowCost = OrderInfo.hasOwnProperty('cost') && +OrderInfo.cost;
+
     this.outOrderInfoField(OrderInfo.statusLabel, '#order_status', '.order_status-caption');
     this.outOrderInfoField(isShowCost, '#order_price', '.order_cost-caption', parseInt(OrderInfo.cost, 10) + ' ' + OrderInfo.costCurrency);
     this.outOrderInfoField(OrderInfo.carDescription, '#order_car', '.car_description-caption');
