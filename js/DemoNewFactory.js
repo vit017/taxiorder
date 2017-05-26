@@ -2,12 +2,8 @@ function DemoNewFactory() {
 
 }
 
-DemoNewFactory.prototype = Object.create(AbstractTaxiOrderFactory.prototype);
-DemoNewFactory.constructor = DemoNewFactory;
-
-
 DemoNewFactory.prototype.createMessenger = function() {
-    return new TaxiMasterAdapter();
+    return new GootaxAdapter();
 };
 
 DemoNewFactory.prototype.createForm = function() {

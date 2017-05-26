@@ -1,12 +1,14 @@
 function DemoNewForm() {
     this.params = {};
     this.messenger = {};
+    this.listeners = {};
 
     this.setFields();
-    this.initParamsEvents();
+    this.setParamsEvents();
+    this.initFieldsEvents();
 }
 
-DemoNewForm.prototype = Object.create(AbstractForm.prototype);
+DemoNewForm.prototype = Object.create(StandartForm.prototype);
 DemoNewForm.constructor = DemoNewForm;
 
 DemoNewForm.prototype.setFields = function () {
@@ -28,7 +30,19 @@ DemoNewForm.prototype.setFields = function () {
     };
 };
 
-DemoNewForm.prototype.initParamsEvents = function () {
+DemoNewForm.prototype.setParamsEvents = function () {
+    this.paramsEvents = [
+        'streetFrom',
+        'houseFrom',
+        'porchFrom',
+        'streetTo',
+        'houseTo',
+        'phone',
+        'comment'
+    ];
+};
+
+DemoNewForm.prototype.initFieldsEvents = function () {
     var calculateCost = this.calculateCost.bind(this);
 
     this.fieldsRaiseEvents = {
@@ -42,132 +56,31 @@ DemoNewForm.prototype.initParamsEvents = function () {
     };
 };
 
-DemoNewForm.prototype.getFieldsEvents = function () {
-    return this.fieldsRaiseEvents;
+DemoNewForm.prototype.getTariffTarget = function () {
+    return $(this.getField('tariffID'));
 };
 
-DemoNewForm.prototype.waitFieldsEvents = function () {
-    var
-        that = this,
-        fields = this.getFields(),
-        fieldsEvents = [
-            'streetFrom',
-            'houseFrom',
-            'porchFrom',
-            'streetTo',
-            'houseTo',
-            'phone',
-            'comment'
-        ];
+DemoNewForm.prototype.createTariffTemplate = function (tariff) {
+    var option = document.createElement('option');
+    option.value = tariff.id;
+    option.text = tariff.label;
 
-    fieldsEvents.forEach(function (field) {
-        if (fields.hasOwnProperty(field)) {
-            that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
-        }
-    });
+    return option;
 };
 
-DemoNewForm.prototype.fieldChanged = function (field, Event) {
-    var
-        $target = this.getEventTarget(Event);
-
-    this.setParam(field, this.getFieldValue($target));
+DemoNewForm.prototype.showTariffs = function () {
+    this.getTariffTarget().show();
 };
 
-DemoNewForm.prototype.findTariffs = function () {
-    var
-        $target = $(this.getField('tariffID'));
+DemoNewForm.prototype.createGeoObjectTemplate = function (object) {
+    var li = document.createElement('li'),
+        text = object.label;
 
-    this.messenger.findTariffs(function (tariffs) {
-        this.setTariffs($target, tariffs);
-        this.showTariffs($target);
-        this.waitTariffChange();
-    }.bind(this));
-};
+    li.className = 'geoobject';
+    li.dataset.res = text;
+    li.textContent = text;
 
-DemoNewForm.prototype.setTariffs = function ($target, tariffs) {
-    var
-        $documentFragment = $(document.createDocumentFragment()),
-        option = {};
-
-    tariffs.forEach(function (tariff) {
-        option = document.createElement('option');
-        option.value = tariff.id;
-        option.text = tariff.label;
-        $documentFragment.append(option);
-    });
-
-    $target.append($documentFragment);
-    this.setParam('tariffID', tariffs[0].id);
-};
-
-DemoNewForm.prototype.showTariffs = function ($target) {
-    $target.show();
-};
-
-DemoNewForm.prototype.waitTariffChange = function () {
-    this.startListen('change', this.getField('tariffID'), function (Event) {
-        var
-            $target = this.getEventTarget(Event),
-            tariffID = +this.getFieldValue($target);
-
-        this.setParam('tariffID', tariffID);
-    }.bind(this));
-};
-
-DemoNewForm.prototype.calculateCost = function (Event) {
-    var
-        params = this.getParams(),
-        $target = $(this.getField('cost'));
-
-    setTimeout(function () {
-        this.messenger.calculateCost(params, function (cost) {
-            this.setCost($target, cost);
-            this.showCost($target);
-        }.bind(this), function (e) {
-            console.error(e)
-        });
-    }.bind(this), 200);
-};
-
-DemoNewForm.prototype.setCost = function ($target, cost) {
-    console.log(cost);
-};
-
-DemoNewForm.prototype.showCost = function ($target) {
-
-};
-
-DemoNewForm.prototype.waitGeoObjects = function () {
-    var
-        streetFrom = this.getField('streetFrom'),
-        streetTo = this.getField('streetTo');
-
-    this.startListen('keyup', streetFrom + ',' + streetTo, this.findGeoObjects.bind(this));
-};
-
-DemoNewForm.prototype.findGeoObjects = function (Event) {
-    var
-        $target = this.getEventTarget(Event),
-        $autocomplete = $(this.getFieldAttr($target, 'data-autocomplete')),
-        text = this.getFieldValue($target);
-
-    this.messenger.findGeoObjects({text: text}, function (objects) {
-        this.setGeoObjects($autocomplete, objects);
-        this.showGeoObjects($autocomplete);
-        this.waitGeoObjectClick();
-    }.bind(this));
-};
-
-DemoNewForm.prototype.setGeoObjects = function ($target, objects) {
-    var
-        $fragment = $(document.createDocumentFragment());
-
-    objects.forEach(function (object) {
-        $fragment.append("<li class='geoobject' data-res='" + JSON.stringify(object) + "'>" + object.label + "</li>");
-    });
-
-    $target.append($fragment);
+    return li;
 };
 
 DemoNewForm.prototype.showGeoObjects = function ($target) {
@@ -176,8 +89,8 @@ DemoNewForm.prototype.showGeoObjects = function ($target) {
     $target.parents('.di_invisible').find('.ds_1').show();
 };
 
-DemoNewForm.prototype.waitGeoObjectClick = function () {
-    this.startListen('click', '.geoobject', this.geoObjectChoosen.bind(this));
+DemoNewForm.prototype.getGeoObjectSelector = function () {
+    return '.geoobject';
 };
 
 DemoNewForm.prototype.geoObjectChoosen = function (Event) {
@@ -200,19 +113,27 @@ DemoNewForm.prototype.hideGeoObjects = function ($target) {
     $target.parents('.direction_input').find('.ds_2').show();
 };
 
+DemoNewForm.prototype.setCost = function ($target, cost) {
+    console.log(cost);
+};
+
+DemoNewForm.prototype.showCost = function ($target) {
+
+};
+
 DemoNewForm.prototype.waitOrderTime = function () {
-    this.startListen('click', '.time_selector button', function (Event) {
-        var
-            $target = this.getEventTarget(Event),
+    var that = this;
+
+    that.startListen('click', '.time_selector button', function (Event) {
+        var $target = that.getEventTarget(Event),
             orderTime = $target.parent().find('option:selected').html() + ' ' + $target.parent().find('input[type="time"]').val() + ':00';
 
-        this.setParam('orderTime', orderTime);
-    }.bind(this));
+        that.setParam('orderTime', orderTime);
+    });
 
-    this.startListen('click', '.tm_selector label', function (Event) {
-        var
-            $target = this.getEventTarget(Event),
-            dataAttribute = parseInt(this.getFieldAttr($target, 'data-time'), 10);
+    that.startListen('click', '.tm_selector label', function (Event) {
+        var $target = that.getEventTarget(Event),
+            dataAttribute = parseInt(that.getFieldAttr($target, 'data-time'), 10);
 
         if (!isFinite(dataAttribute)) {
             return;
@@ -224,24 +145,10 @@ DemoNewForm.prototype.waitOrderTime = function () {
 
         if (dataAttribute) {
             now.setMinutes(now.getMinutes() + dataAttribute);
-            orderTime = this.messenger.formatOrderTime(now);
+            orderTime = that.messenger.formatOrderTime(now);
         }
 
-        this.setParam('orderTime', orderTime);
-    }.bind(this));
-};
-
-DemoNewForm.prototype.afterSetParam = function (key) {
-    var fieldsEvents = this.getFieldsEvents();
-
-    if (!fieldsEvents.hasOwnProperty(key)) {
-        return;
-    }
-
-    var events = fieldsEvents[key];
-
-    events.forEach(function (event) {
-        event();
+        that.setParam('orderTime', orderTime);
     });
 };
 
@@ -249,132 +156,32 @@ DemoNewForm.prototype.defineDirection = function ($target) {
     return $target.closest('.direction_input').attr('data-direction');
 };
 
-DemoNewForm.prototype.waitCreateOrder = function () {
-    this.startListen('click', '#BUTTON_CREATE_ORDER', function (Event) {
-        this.preventEvent(Event);
-
-        var $phone = $(this.getField('phone')),
-            phone = this.getFieldValue($phone).trim();
-
-        if (!phone.length) {
-            $phone.addClass('error');
-            return;
-        }
-
-        this.tryAuthorize(phone, function () {
-            this.createOrder();
-        }.bind(this));
-
-    }.bind(this));
+DemoNewForm.prototype.getValidateResultsField = function () {
+    return $('#result-message');
 };
 
-DemoNewForm.prototype.tryAuthorize = function (phone, then) {
-    if (!phone.length) {
-        throw new Error('Phone is required');
-    }
-
-    this.isAuthorizedPhone(phone, then, function () {
-        this.sendSms(phone, function () {
-            go_to_step(3);
-            this.waitConfirmSms(then);
-            this.waitSendSmsAgain();
-        }.bind(this));
-    }.bind(this));
+DemoNewForm.prototype.getCreateOrderSelector = function () {
+    return '#BUTTON_CREATE_ORDER';
 };
 
-DemoNewForm.prototype.isAuthorizedPhone = function (phone, yes, no) {
-    this.messenger.isAuthorizedPhone(phone, yes, no);
+DemoNewForm.prototype.toggleAuthorizationStep = function () {
+    go_to_step(3);
 };
 
-DemoNewForm.prototype.sendSms = function (phone, then) {
-    this.messenger.sendSms(phone, function (sendResult) {
-        if (!sendResult.success) {
-            this.showPopup(sendResult.text);
-            return;
-        }
-
-        if (TypeHelper.isFunction(then)) {
-            then();
-        }
-    }.bind(this));
+DemoNewForm.prototype.toggleOrderInfoStep = function () {
+    go_to_step(4);
 };
 
-DemoNewForm.prototype.waitConfirmSms = function (then) {
-    this.startListen('click', '#BUTTON_SMS', function (Event) {
-        this.preventEvent(Event);
-
-        var $smsCode = $('#FIELD_SMS'),
-            smsCode = this.getFieldValue($smsCode).trim(),
-            phone = this.getParam('phone');
-
-        if (!smsCode.length) {
-            $smsCode.addClass('error');
-            return;
-        }
-
-        this.confirmSms(phone, smsCode, then);
-    }.bind(this));
+DemoNewForm.prototype.getConfirmPhoneSelector = function () {
+    return '#BUTTON_SMS';
 };
 
-DemoNewForm.prototype.waitSendSmsAgain = function () {
-    this.startListen('click', '.send_again', function (Event) {
-        this.preventEvent(Event);
-        var
-            phone = this.getParam('phone');
-
-        if (!phone) {
-            throw new Error('phone is required');
-        }
-
-        this.sendSms(phone);
-    }.bind(this));
+DemoNewForm.prototype.getSmsCodeSelector = function () {
+    return '#FIELD_SMS';
 };
 
-DemoNewForm.prototype.confirmSms = function (phone, smsCode, then) {
-    var params = {
-        phone: phone,
-        smsCode: smsCode
-    };
-
-    this.messenger.confirmSms(params, function (confirmResult) {
-        if (!confirmResult.success) {
-            this.showPopup(confirmResult.text);
-            return;
-        }
-
-        this.messenger.setAuthorizedPhone(confirmResult, then);
-    }.bind(this));
-};
-
-DemoNewForm.prototype.createOrder = function () {
-    var params = this.getParams();
-
-    this.messenger.createOrder(params, function (orderResult) {
-        var orderID = +orderResult;
-
-        if (orderID > 0) {
-            this.startOrderInfo(orderID);
-            go_to_step(4);
-        }
-    }.bind(this));
-};
-
-DemoNewForm.prototype.rejectOrder = function (orderID) {
-    this.messenger.rejectOrder(orderID, function (rejected) {
-
-        this.showPopup(rejected);
-
-    }.bind(this));
-};
-
-DemoNewForm.prototype.startOrderInfo = function (orderID) {
-    if (!orderID) {
-        throw new Error('orderID is required');
-    }
-
-    this.startOrderInfo.interval = setInterval(function () {
-        this.messenger.getOrderInfo(orderID, this.showOrderInfo.bind(this));
-    }.bind(this), 4000);
+DemoNewForm.prototype.getSendSmsAgainSelector = function () {
+    return '.send_again';
 };
 
 DemoNewForm.prototype.showOrderInfo = function (orderInfo) {
