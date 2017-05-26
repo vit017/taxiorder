@@ -197,12 +197,3 @@ DemoNewForm.prototype.showOrderInfoInit = function(OrderInfo) {
 DemoNewForm.prototype.showOrderInfoDone = function(OrderInfo) {
     $(this.getCancelOrderSelector()).remove();
 };
-
-DemoNewForm.prototype.orderIsEveryStep = function (OrderInfo) {
-    this.outOrderInfoField(OrderInfo.statusLabel, '.order_status', '.order_status-caption');
-    this.outOrderInfoField(+OrderInfo.cost + ' ' + OrderInfo.costCurrency, '.order_cost', '.order_cost-caption');
-    this.outOrderInfoField(OrderInfo.carDescription, '.car_description', '.car_description-caption');
-    this.outOrderInfoField(OrderInfo.carTime, '.car_time', '.car_time-caption');
-    this.outOrderInfoField(OrderInfo.driverFio, '.driver_fio', '.driver_fio-caption');
-};
-
