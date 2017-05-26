@@ -28,6 +28,7 @@ AbstractForm.prototype.getFields = function () {
 
 AbstractForm.prototype.getField = function (key) {
     var fields = this.getFields();
+
     if (!fields.hasOwnProperty(key)) {
         return;
     }
