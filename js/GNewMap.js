@@ -81,11 +81,33 @@ GNewMap.prototype.create = function (params, then) {
     that.connect(ready.bind(afterReady));
 };
 
-GNewMap.prototype.getSinglePoint = function (coords, category) {
+GNewMap.prototype.setSinglePoint = function (coords, category) {
+    var
+        categoryParam = (2 === arguments.length) ? '' + category : this.categoryPoints,
+        newPoint = this.newSinglePoint(coords, category);
+
+
+    this.removeSinglePoint(categoryParam);
+    this.addSinglePoint(newPoint, categoryParam);
+};
+
+GNewMap.prototype.newSinglePoint = function (coords, category) {
     var mapPoint = {};
 
     switch (category) {
         case 'from':
+            mapPoint = new ymaps.GeoObject({
+                geometry: {
+                    type: 'Point',
+                    coordinates: coords
+                }
+            }, {
+                iconLayout: 'default#image',
+                iconImageHref: '/local/templates/g-newtaxi/taxiorder/images/i/a_icon.png',
+                iconImageSize: [24, 27],
+                iconImageOffset: [12, 27]
+            });
+            break;
         case 'to':
             mapPoint = new ymaps.GeoObject({
                 geometry: {
@@ -93,7 +115,10 @@ GNewMap.prototype.getSinglePoint = function (coords, category) {
                     coordinates: coords
                 }
             }, {
-                preset: "islands#redIcon"
+                iconLayout: 'default#image',
+                iconImageHref: '/local/templates/g-newtaxi/taxiorder/images/i/b_icon.png',
+                iconImageSize: [24, 27],
+                iconImageOffset: [12, 27]
             });
             break;
         default:
@@ -108,23 +133,6 @@ GNewMap.prototype.getSinglePoint = function (coords, category) {
     }
 
     return mapPoint;
-};
-
-GNewMap.prototype.setSinglePoint = function (coords, category) {
-    var
-        categoryParam = (2 === arguments.length) ? '' + category : this.categoryPoints,
-        newPoint = this.getSinglePoint(coords, category),
-        mapObjects = this.getMapObjects();
-
-
-    this.removeSinglePoint(categoryParam);
-    this.addSinglePoint(newPoint, categoryParam);
-
-    return mapObjects.add(newPoint);
-};
-
-GNewMap.prototype.getMapObjects = function () {
-    return this.getMapImplementation().geoObjects;
 };
 
 GNewMap.prototype.removeSinglePoint = function (category) {
@@ -147,6 +155,10 @@ GNewMap.prototype.removeSinglePoint = function (category) {
     delete mapPoints[categoryParam];
 };
 
+GNewMap.prototype.getMapObjects = function () {
+    return this.getMapImplementation().geoObjects;
+};
+
 GNewMap.prototype.getPoints = function () {
     return this.points;
 };
@@ -155,6 +167,7 @@ GNewMap.prototype.addSinglePoint = function (point, category) {
     var categoryParam = (2 === arguments.length) ? '' + category : this.categoryPoints;
 
     this.points[categoryParam] = point;
+    this.getMapObjects().add(point);
 };
 
 
