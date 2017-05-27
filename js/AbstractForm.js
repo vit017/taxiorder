@@ -6,6 +6,10 @@ AbstractForm.prototype.setMessenger = function (messenger) {
     this.messenger = messenger;
 };
 
+AbstractForm.prototype.setMap = function (map) {
+    this.map = map;
+};
+
 AbstractForm.prototype.startListen = function (eventType, selector, handler) {
     $(selector).on(eventType, handler);
 };

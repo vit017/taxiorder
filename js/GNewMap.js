@@ -4,6 +4,8 @@ function GNewMap() {
     this.container = '';
     this.centerCoords = [];
     this.zoom = 10;
+    this.points = {};
+    this.categoryPoints = 'default';
 }
 
 GNewMap.prototype.setParams = function (params) {
@@ -60,7 +62,7 @@ GNewMap.prototype.init = function (then) {
             zoom: that.zoom
         });
 
-    
+
     that.setMapImplementation(mapImpl);
 
     if (TypeHelper.isFunction(then)) {
@@ -79,215 +81,80 @@ GNewMap.prototype.create = function (params, then) {
     that.connect(ready.bind(afterReady));
 };
 
-/*
- var k = 0;
- function generateKey(params) {
- return '' + k++;
+GNewMap.prototype.getSinglePoint = function (coords, category) {
+    var mapPoint = {};
 
- var arUniq = [];
+    switch (category) {
+        case 'from':
+        case 'to':
+            mapPoint = new ymaps.GeoObject({
+                geometry: {
+                    type: 'Point',
+                    coordinates: coords
+                }
+            }, {
+                preset: "islands#redIcon"
+            });
+            break;
+        default:
+            mapPoint = new ymaps.GeoObject({
+                geometry: {
+                    type: 'Point',
+                    coordinates: coords
+                }
+            }, {
+                preset: "islands#blueIcon"
+            });
+    }
 
- switch (typeof params) {
- case 'undefined':
- arUniq.push('');
- break;
- case 'object':
- Object.keys(params).forEach(function (key) {
- arUniq.push(generateKey(params[key]));
- });
- break;
- default:
- arUniq.push('' + params);
- }
+    return mapPoint;
+};
 
- return arUniq.join('');
- }
-
- function YandexPoint(params) {
- this.coords = params.coords || [];
- this.options = params.options || {};
- this.category = params.category || '';
- this.ya = null;
- this.id = generateKey(params);
- }
- YandexPoint.prototype.uniq = function () {
- return this.id;
- };
- YandexPoint.prototype.update = function (params) {
- var that = this;
-
- Object.keys(this).forEach(function (key) {
- if (params.hasOwnProperty(key)) {
- that[key] = params[key];
- }
- });
- that.id = generateKey(params);
-
- return that;
- };
- YandexPoint.prototype.param = function (key, value) {
- if (1 === arguments.length) {
- return this[key];
- }
-
- this[key] = value;
- };
- YandexPoint.prototype.create = function () {
- if (this.ya) {
- return this.ya;
- }
-
- var that = this;
- this.ya = new ymaps.GeoObject({
- geometry: {
- type: "Point",
- coordinates: that.coords
- }
- }, that.options);
-
- return this.ya;
- };
- YandexPoint.prototype.get = function () {
- if (!this.ya) {
- this.ya = this.create();
- }
-
- return this.ya;
- };
- YandexPoint.prototype.addEvent = function (eventType, cbk) {
- this.get().events.add(eventType, cbk);
- };
-
- function YandexMap(params) {
- this.container = params.container || '';
- this.coords = params.coords || [];
- this.zoom = params.zoom || 10;
- }
- YandexMap.Points = {};
- YandexMap.Settings = {
- categoryPoints: 'default'
- };
- YandexMap.ready = function (cbk) {
- ymaps.ready(cbk);
- };
- YandexMap.prototype.param = function (key, value) {
- if (1 === arguments.length) {
- return this[key];
- }
-
- this[key] = value;
- };
- YandexMap.prototype.create = function () {
- if (this.ya) {
- return this.ya;
- }
-
- var that = this;
- this.ya = new ymaps.Map(that.container, {
- center: that.coords,
- zoom: that.zoom
- });
-
- return this.ya;
- };
- YandexMap.prototype.get = function () {
- if (!this.ya) {
- this.ya = this.create();
- }
-
- return this.ya;
- };
- YandexMap.prototype.addEvent = function (eventType, cbk) {
- this.get().events.add(eventType, cbk);
- };
- YandexMap.prototype.addPoint = function (Point, category) {
- var c = (2 === arguments.length) ? '' + category : (Point.category || YandexMap.Settings.categoryPoints);
-
- if (!YandexMap.Points.hasOwnProperty(c)) {
- YandexMap.Points[c] = {};
- }
-
- YandexMap.Points[c][Point.uniq()] = Point;
-
- return this.get().geoObjects.add(Point.get());
- };
- YandexMap.prototype.removePoint = function (Point, category) {
- var
- c = (2 === arguments.length) ? '' + category : (Point.category || YandexMap.Settings.categoryPoints),
- pid = Point.uniq(),
- Points = YandexMap.Points,
- mapObjects = this.get().geoObjects,
- p = Point.get();
+GNewMap.prototype.setSinglePoint = function (coords, category) {
+    var
+        categoryParam = (2 === arguments.length) ? '' + category : this.categoryPoints,
+        newPoint = this.getSinglePoint(coords, category),
+        mapObjects = this.getMapObjects();
 
 
- if (Points.hasOwnProperty(c) && Points[c].hasOwnProperty(pid)) {
- delete Points[c][pid];
- }
+    this.removeSinglePoint(categoryParam);
+    this.addSinglePoint(newPoint, categoryParam);
 
- if (mapObjects.indexOf(p) > -1) {
- mapObjects.remove(p);
- }
- };
- YandexMap.prototype.removePoints = function (category) {
- var c = (1 === arguments.length) ? '' + category : YandexMap.Settings.categoryPoints,
- Points = YandexMap.Points;
+    return mapObjects.add(newPoint);
+};
 
- if (!Points.hasOwnProperty(c)) {
- return;
- }
+GNewMap.prototype.getMapObjects = function () {
+    return this.getMapImplementation().geoObjects;
+};
 
- var that = this,
- ps = Points[c];
+GNewMap.prototype.removeSinglePoint = function (category) {
+    var
+        that = this,
+        categoryParam = (1 === arguments.length) ? '' + category : this.categoryPoints,
+        mapObjects = this.getMapObjects(),
+        mapPoints = that.getPoints(),
+        mapPoint = mapPoints[categoryParam];
 
- Object.keys(ps).forEach(function (key) {
- that.removePoint(ps[key]);
- });
- delete Points[c];
- };
- YandexMap.prototype.getAddressLine = function (GeoResult) {
- var Text = GeoResult.properties.getAll();
- return Text.name + ', ' + Text.description.split(',').reverse().join(', ').trim();
- };
- YandexMap.prototype.getCoords = function (GeoResult) {
- return GeoResult.geometry.getCoordinates();
- };
- YandexMap.prototype.center = function (coords) {
- if (!arguments.length) {
- return this.get().getCenter();
- }
 
- this.get().setCenter(coords);
- };
- YandexMap.prototype.geocode = function (params, cbk) {
- var options = {
- results: params.results || 10
- };
- if (params.hasOwnProperty('bounds')) {
- options.boundedBy = params.bounds;
- options.strictBounds = true;
- }
+    if (!mapPoint) {
+        return;
+    }
 
- ymaps.geocode(params.request, options).then(function (result) {
- if (cbk && typeof cbk === 'function') {
- if (1 === params.results) {
- cbk(result.geoObjects.get(0));
- }
- else {
- cbk(result.geoObjects);
- }
- }
- });
- };
- YandexMap.prototype.route = function (params, cbk) {
- ymaps.route(params.points, {
- mapStateAutoApply: params.autoMapState || false
- }).then(function (route) {
- if (cbk && typeof cbk === 'function') {
- cbk(route);
- }
- }, function (e) {
- if (cbk && typeof cbk === 'function') {
- cbk(e);
- }
- });
- };
- */
+    if (mapObjects.indexOf(mapPoint) > -1) {
+        mapObjects.remove(mapPoint);
+    }
+
+    delete mapPoints[categoryParam];
+};
+
+GNewMap.prototype.getPoints = function () {
+    return this.points;
+};
+
+GNewMap.prototype.addSinglePoint = function (point, category) {
+    var categoryParam = (2 === arguments.length) ? '' + category : this.categoryPoints;
+
+    this.points[categoryParam] = point;
+};
+
+

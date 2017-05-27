@@ -1,6 +1,7 @@
 function GNewForm() {
     this.params = {};
     this.messenger = {};
+    this.map = {};
     this.events = {};
 
     this.setFields();
@@ -113,8 +114,8 @@ GNewForm.prototype.geoObjectChoosen = function (Event) {
         field = 'from' === direction ? 'streetFrom' : 'streetTo',
         paramLat = 'from' === direction ? 'latFrom' : 'latTo',
         paramLon = 'from' === direction ? 'lonFrom' : 'lonTo',
-        LatValue = this.getFieldAttr($object, 'data-lat'),
-        LonValue = this.getFieldAttr($object, 'data-lon'),
+        latValue = this.getFieldAttr($object, 'data-lat'),
+        lonValue = this.getFieldAttr($object, 'data-lon'),
         $street = $(this.getField(field)),
         $autocomplete = $(this.getFieldAttr($street, 'data-autocomplete'));
 
@@ -122,8 +123,10 @@ GNewForm.prototype.geoObjectChoosen = function (Event) {
     this.setFieldValue($street, fieldValue);
 
     this.setParam(field, fieldValue);
-    this.setParam(paramLat, LatValue);
-    this.setParam(paramLon, LonValue);
+    this.setParam(paramLat, latValue);
+    this.setParam(paramLon, lonValue);
+
+    this.map.setSinglePoint([latValue, lonValue], direction);
 
     this.hideGeoObjects($autocomplete);
 };
