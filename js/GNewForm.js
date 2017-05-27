@@ -122,11 +122,11 @@ GNewForm.prototype.geoObjectChoosen = function (Event) {
 
     this.setFieldValue($street, fieldValue);
 
-    this.setParam(field, fieldValue);
     this.setParam(paramLat, latValue);
     this.setParam(paramLon, lonValue);
+    this.setParam(field, fieldValue);
 
-    this.map.setSinglePoint([latValue, lonValue], direction);
+    this.map.setPointOnMap([latValue, lonValue], direction);
 
     this.hideGeoObjects($autocomplete);
 };

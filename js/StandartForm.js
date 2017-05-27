@@ -13,7 +13,7 @@ StandartForm.prototype.waitParamsEvents = function () {
 
     paramsEvents.forEach(function (field) {
         if (fields.hasOwnProperty(field)) {
-            that.startListen('blur', fields[field], that.fieldChanged.bind(that, field));
+            that.startListen('change', fields[field], that.fieldChanged.bind(that, field));
         }
     });
 };
@@ -23,6 +23,7 @@ StandartForm.prototype.getParamsEvents = function () {
 };
 
 StandartForm.prototype.fieldChanged = function (field, Event) {
+    console.log(Event)
     var $target = this.getEventTarget(Event);
 
     this.setParam(field, this.getFieldValue($target));
@@ -64,6 +65,27 @@ StandartForm.prototype.waitTariffChange = function () {
 
         that.setParam('tariffID', tariffID);
     });
+};
+
+StandartForm.prototype.findCars = function () {
+    var that = this,
+        freeCars = [],
+        busyCars = [],
+        container = [];
+
+    that.messenger.findCars(function (cars) {
+        cars.forEach(function (car) {
+            container = car.isFree ? freeCars : busyCars;
+            container.push(car);
+        });
+
+        that.setCarsOnMap(freeCars, 'freeCar');
+        that.setCarsOnMap(busyCars, 'busyCar');
+    });
+};
+
+StandartForm.prototype.setCarsOnMap = function (cars, category) {
+    this.map.setMultiPointsOnMap(cars, category);
 };
 
 StandartForm.prototype.waitGeoObjects = function () {
@@ -379,7 +401,7 @@ StandartForm.prototype.checkOrderExists = function () {
         cookieOrderName = this.messenger.getCookieForOrder(),
         orderID = +this.messenger.getCookie(cookieOrderName);
 
-    
+
     if (orderID) {
         this.restoreOrder(orderID);
     }

@@ -87,6 +87,16 @@ StandartAdapter.prototype.findTariffs = function (success, error) {
     }));
 };
 
+StandartAdapter.prototype.findCars = function (success, error) {
+    var that = this;
+
+    this.process(new Request({
+        url: that.url + 'findCars',
+        success: success,
+        error: error
+    }));
+};
+
 StandartAdapter.prototype.findGeoObjects = function (clientParams, success, error) {
 
     var that = this,
